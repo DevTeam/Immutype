@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Immutype", "Immutype\Immutype.csproj", "{63D4F0BD-F055-42D4-B6D0-F614D2CF9888}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Immutype.Tests", "Immutype.Tests\Immutype.Tests.csproj", "{D27FD651-52B1-40FF-999A-2AAE9868FE44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Immutype.UsageScenarios.Tests", "Immutype.UsageScenarios.Tests\Immutype.UsageScenarios.Tests.csproj", "{76D47DF6-FE3A-4D10-A9EC-C6EC59231417}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{63D4F0BD-F055-42D4-B6D0-F614D2CF9888}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63D4F0BD-F055-42D4-B6D0-F614D2CF9888}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63D4F0BD-F055-42D4-B6D0-F614D2CF9888}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63D4F0BD-F055-42D4-B6D0-F614D2CF9888}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D27FD651-52B1-40FF-999A-2AAE9868FE44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D27FD651-52B1-40FF-999A-2AAE9868FE44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D27FD651-52B1-40FF-999A-2AAE9868FE44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D27FD651-52B1-40FF-999A-2AAE9868FE44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76D47DF6-FE3A-4D10-A9EC-C6EC59231417}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76D47DF6-FE3A-4D10-A9EC-C6EC59231417}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76D47DF6-FE3A-4D10-A9EC-C6EC59231417}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76D47DF6-FE3A-4D10-A9EC-C6EC59231417}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
