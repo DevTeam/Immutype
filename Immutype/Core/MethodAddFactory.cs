@@ -19,23 +19,23 @@ namespace Immutype.Core
             _syntaxNodeFactory = syntaxNodeFactory;
         }
 
-        public MethodDeclarationSyntax? Create(TypeDeclarationSyntax targetDeclaration, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
+        public IEnumerable<MethodDeclarationSyntax> Create(TypeDeclarationSyntax targetDeclaration, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
         {
             if (currentParameter.Type == default)
             {
-                return default;
+                yield break;
             }
             
             var elementType = GetElementType(currentParameter.Type);
             if (elementType == default)
             {
-                return default;
+                yield break;
             }
 
             var arrayType = SyntaxFactory.ArrayType(elementType).AddRankSpecifiers(SyntaxFactory.ArrayRankSpecifier());
             var arrayParameter = SyntaxFactory.Parameter(currentParameter.Identifier).WithType(arrayType).AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
             var arguments = CreateAddArguments(targetDeclaration, thisParameter, parameters, currentParameter, arrayParameter);
-            return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{_nameService.ConvertToName(currentParameter.Identifier.Text)}")
+            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{_nameService.ConvertToName(currentParameter.Identifier.Text)}")
                 .AddParameterListParameters(thisParameter, arrayParameter)
                 .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments));
         }

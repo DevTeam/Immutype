@@ -3,6 +3,7 @@ namespace Immutype.Core
 {
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Linq;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -19,25 +20,44 @@ namespace Immutype.Core
             _syntaxNodeFactory = syntaxNodeFactory;
         }
 
-        public MethodDeclarationSyntax Create(TypeDeclarationSyntax targetDeclaration, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
+        public IEnumerable<MethodDeclarationSyntax> Create(TypeDeclarationSyntax targetDeclaration, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
         {
+            var curParameters = parameters.ToArray();
+            var argumentParameter = currentParameter.WithDefault(default);
+            var newArgumentParameter = argumentParameter;
             var arguments = new List<ArgumentSyntax>();
-            var argumentParameter = currentParameter;
-            foreach (ParameterSyntax parameter in parameters)
+            foreach (ParameterSyntax parameter in curParameters)
             {
                 if (parameter == currentParameter)
                 {
-                    arguments.Add(SyntaxFactory.Argument(CreateWithExpression(currentParameter, out argumentParameter)));
+                    arguments.Add(SyntaxFactory.Argument(CreateWithExpression(argumentParameter, out newArgumentParameter)));
                 }
                 else
                 {
                     arguments.Add(_syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
                 }
             }
-            
-            return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{_nameService.ConvertToName(currentParameter.Identifier.Text)}")
-                .AddParameterListParameters(thisParameter, argumentParameter)
+
+            var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
+            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}")
+                .AddParameterListParameters(thisParameter, newArgumentParameter)
                 .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments));
+
+            if (argumentParameter != newArgumentParameter && argumentParameter.Type is not ArrayTypeSyntax)
+            {
+                var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(SyntaxFactory.IdentifierName(currentParameter.Identifier)) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
+                yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}")
+                    .AddParameterListParameters(thisParameter, argumentParameter)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
+            }
+
+            if (currentParameter.Default != default && argumentParameter == newArgumentParameter)
+            {
+                var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(currentParameter.Default.Value) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
+                yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"WithDefault{name}")
+                    .AddParameterListParameters(thisParameter)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
+            }
         }
         
         private ExpressionSyntax CreateWithExpression(ParameterSyntax currentParameter, out ParameterSyntax argumentParameter)

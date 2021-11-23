@@ -26,10 +26,9 @@ namespace Immutype.Core
                 let parameterType = currentParameter.Type
                 where parameterType != default
                 from methodFactory in _methodFactories
-                let method = methodFactory.Create(targetDeclaration, targetType, parameters, currentParameter, thisParameter)
+                from method in methodFactory.Create(targetDeclaration, targetType, parameters, currentParameter, thisParameter)
                 where !cancellationToken.IsCancellationRequested
-                where method != default
-                select (MemberDeclarationSyntax)method!;
+                select method;
         }
     }
 }

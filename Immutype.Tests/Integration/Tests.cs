@@ -429,5 +429,47 @@ namespace Immutype.Tests.Integration
             // Then
             output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
         }
+        
+        [Fact]
+        public void ShouldCreateRecordWithDefaultValue()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(new Rec(\"abc\", 33).WithVal(99).WithDefaultVal());";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                
+                [Immutype.TargetAttribute()]
+                public record Rec(string str, int val = 44);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "Rec { str = abc, val = 44 }" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportWithWithOriginType()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(\"abc\", ImmutableArray.Create(33)).WithVals(ImmutableArray.Create(11, 22)).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Immutable;
+                using Immutype;
+
+                [Target]
+                public record Rec(string str, ImmutableArray<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "11,22" }, generatedCode);
+        }
     }
 }
