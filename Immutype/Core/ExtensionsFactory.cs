@@ -61,7 +61,8 @@ namespace Immutype.Core
             }
 
             var code = compilationUnit.NormalizeWhitespace().ToString();
-            yield return new Source(className, SourceText.From(code, Encoding.UTF8));
+            var fileName = string.Join(".", ns.Select(i => i.Name.ToString()).Concat(new []{typeDeclarationSyntax.Identifier.Text}));
+            yield return new Source(fileName, SourceText.From(code, Encoding.UTF8));
         }
     }
 }

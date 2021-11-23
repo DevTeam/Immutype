@@ -1,3 +1,4 @@
+// ReSharper disable UnusedMember.Global
 namespace Immutype.Core
 {
     using System.Collections.Generic;

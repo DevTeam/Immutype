@@ -4,6 +4,8 @@ using Xunit;
 
 namespace Immutype.Tests.Integration
 {
+    using Microsoft.CodeAnalysis;
+
     public class Tests
     {
         [Fact]
@@ -47,7 +49,7 @@ namespace Immutype.Tests.Integration
         }
 
         [Fact]
-        public void ShouldCreateRecordWith2Values()
+        public void ShouldCreateRecordWithTwoValues()
         {
             // Given
             const string statements = "System.Console.WriteLine(new Rec(33, \"Abc\").WithVal(99).WithStr(\"Xyz\"));";
@@ -431,6 +433,50 @@ namespace Immutype.Tests.Integration
         }
         
         [Fact]
+        public void ShouldSupportImmutableQueue()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableQueue.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Immutable;
+                using Immutype;
+
+                [Target]
+                public record Rec(ImmutableQueue<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportImmutableStack()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableStack.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Immutable;
+                using Immutype;
+
+                [Target]
+                public record Rec(ImmutableStack<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "44,99,22,55" }, generatedCode);
+        }
+        
+        [Fact]
         public void ShouldCreateRecordWithDefaultValue()
         {
             // Given
@@ -470,6 +516,226 @@ namespace Immutype.Tests.Integration
             
             // Then
             output.ShouldBe(new [] { "11,22" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportRemove()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).RemoveVals(33, 66).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(IEnumerable<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "99" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportList()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(List<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportIList()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(IList<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportHashSet()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new HashSet<int>{33}).WithVals(55).AddVals(99, 55, 44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(HashSet<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportISet()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new HashSet<int>{33}).WithVals(55).AddVals(99, 55, 44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(ISet<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportQueue()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new Queue<int>(new[]{33})).WithVals(55).AddVals(99, 44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(Queue<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportStack()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new Stack<int>(new[]{33})).WithVals(55).AddVals(99, 44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(Stack<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "44,99,55" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportNullableIList()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55, 66).AddVals(99, 44).vals!));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(IList<int>? vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements, NullableContextOptions = NullableContextOptions.Enable});
+            
+            // Then
+            output.ShouldBe(new [] { "55,66,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportNullableICollection()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55, 66).AddVals(99, 44).vals!));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(ICollection<int>? vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements, NullableContextOptions = NullableContextOptions.Enable});
+            
+            // Then
+            output.ShouldBe(new [] { "55,66,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportNullableIImmutableList()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create<int>(33)).WithVals(55, 66).AddVals(99, 44).vals!));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Immutable;
+                using Immutype;
+
+                [Target]
+                public record Rec(IImmutableList<int>? vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements, NullableContextOptions = NullableContextOptions.Enable});
+            
+            // Then
+            output.ShouldBe(new [] { "55,66,99,44" }, generatedCode);
         }
     }
 }

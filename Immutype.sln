@@ -6,6 +6,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Immutype.Tests", "Immutype.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Immutype.UsageScenarios.Tests", "Immutype.UsageScenarios.Tests\Immutype.UsageScenarios.Tests.csproj", "{76D47DF6-FE3A-4D10-A9EC-C6EC59231417}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Artifacts", "Artifacts", "{6215AF16-6477-4D37-9C08-82DA765A2FF8}"
+ProjectSection(SolutionItems) = preProject
+	Directory.Build.props = Directory.Build.props
+	README_BODY.md = README_BODY.md
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

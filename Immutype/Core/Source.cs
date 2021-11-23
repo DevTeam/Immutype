@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.Text;
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable NotAccessedField.Global
 
 namespace Immutype.Core
 {

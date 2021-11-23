@@ -1,9 +1,10 @@
 // ReSharper disable ConvertIfStatementToConditionalTernaryExpression
+// ReSharper disable InvertIf
 namespace Immutype.Core
 {
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Linq;
+    using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -11,13 +12,16 @@ namespace Immutype.Core
     {
         private readonly INameService _nameService;
         private readonly ISyntaxNodeFactory _syntaxNodeFactory;
+        private readonly IDataContainerFactory _dataContainerFactory;
 
         public MethodWithFactory(
             INameService nameService,
-            ISyntaxNodeFactory syntaxNodeFactory)
+            ISyntaxNodeFactory syntaxNodeFactory,
+            IDataContainerFactory dataContainerFactory)
         {
             _nameService = nameService;
             _syntaxNodeFactory = syntaxNodeFactory;
+            _dataContainerFactory = dataContainerFactory;
         }
 
         public IEnumerable<MethodDeclarationSyntax> Create(TypeDeclarationSyntax targetDeclaration, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
@@ -63,70 +67,36 @@ namespace Immutype.Core
         private ExpressionSyntax CreateWithExpression(ParameterSyntax currentParameter, out ParameterSyntax argumentParameter)
         {
             argumentParameter = currentParameter;
-            ExpressionSyntax result = SyntaxFactory.IdentifierName(currentParameter.Identifier);
-            if (currentParameter.Type == default)
+            return CreateWithExpression(currentParameter.Type, ref argumentParameter,  SyntaxFactory.IdentifierName(currentParameter.Identifier));
+        }
+
+        private ExpressionSyntax CreateWithExpression(TypeSyntax? currentParameterType, ref ParameterSyntax argumentParameter, ExpressionSyntax result)
+        {
+            if (currentParameterType == default)
             {
                 return result;
             }
-
-            switch (_syntaxNodeFactory.GetUnqualified(currentParameter.Type))
+            
+            switch (_syntaxNodeFactory.GetUnqualified(currentParameterType))
             {
-                case GenericNameSyntax genericNameSyntax:
-                    if (genericNameSyntax.TypeArgumentList.Arguments.Count == 1 && currentParameter.Type != default)
-                    {
-                        var elementType = genericNameSyntax.TypeArgumentList.Arguments[0];
-                        switch (genericNameSyntax.Identifier.Text)
-                        {
-                            case "List":
-                            case "IEnumerable": 
-                            case "IReadOnlyCollection":
-                            case "IReadOnlyList":
-                            case "ICollection":
-                            case "IList":
-                            {
-                                var listType = SyntaxFactory.GenericName(SyntaxFactory.Identifier("System.Collections.Generic.List")).AddTypeArgumentListArguments(elementType);
-                                result = SyntaxFactory.ObjectCreationExpression(listType).AddArgumentListArguments(SyntaxFactory.Argument(result));
-                                argumentParameter = argumentParameter.WithType(SyntaxFactory.ArrayType(elementType).AddRankSpecifiers(SyntaxFactory.ArrayRankSpecifier())).AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
-                                break;
-                            }
-                                
-                            case "ImmutableList":
-                            case "IImmutableList":
-                            {
-                                var listType = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("System.Collections.Immutable.ImmutableList"));
-                                result = SyntaxFactory.InvocationExpression(
-                                        SyntaxFactory.MemberAccessExpression(
-                                            SyntaxKind.SimpleMemberAccessExpression,
-                                            listType,
-                                            SyntaxFactory.GenericName(nameof(ImmutableList.Create)).AddTypeArgumentListArguments(elementType)))
-                                    .AddArgumentListArguments(SyntaxFactory.Argument(result));
-                                argumentParameter = argumentParameter.WithType(SyntaxFactory.ArrayType(elementType).AddRankSpecifiers(SyntaxFactory.ArrayRankSpecifier())).AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
-                                break;
-                            }
-                                
-                            case "ImmutableArray":
-                            {
-                                var listType = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("System.Collections.Immutable.ImmutableArray"));
-                                result = SyntaxFactory.InvocationExpression(
-                                        SyntaxFactory.MemberAccessExpression(
-                                            SyntaxKind.SimpleMemberAccessExpression,
-                                            listType,
-                                            SyntaxFactory.GenericName(nameof(ImmutableList.Create)).AddTypeArgumentListArguments(elementType)))
-                                    .AddArgumentListArguments(SyntaxFactory.Argument(result));
-                                argumentParameter = argumentParameter.WithType(SyntaxFactory.ArrayType(elementType).AddRankSpecifiers(SyntaxFactory.ArrayRankSpecifier())).AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
-                                break;
-                            }
-                        }
-                    }
+                case NullableTypeSyntax nullableTypeSyntax:
+                    result = CreateWithExpression(nullableTypeSyntax.ElementType, ref argumentParameter, result);
+                    break;
 
+                case GenericNameSyntax genericNameSyntax:
+                    _dataContainerFactory.TryCreate(genericNameSyntax, ref result!, ref argumentParameter);
                     break;
 
                 case ArrayTypeSyntax:
-                    argumentParameter = argumentParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+                    if (!argumentParameter.Modifiers.Any(i => i.IsKind(SyntaxKind.ParamsKeyword)))
+                    {
+                        argumentParameter = argumentParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+                    }
+
                     break;
             }
 
-            return result;
+            return result!;
         }
     }
 }

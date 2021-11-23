@@ -16,7 +16,8 @@ namespace Immutype
                 .Bind<INameService>().To<NameService>()
                 .Bind<IUnitFactory>().To<ExtensionsFactory>()
                 .Bind<IMethodsFactory>().To<MethodsFactory>()
+                .Bind<IDataContainerFactory>().To<DataContainerFactory>()
                 .Bind<IMethodFactory>(typeof(MethodWithFactory)).To<MethodWithFactory>()
-                .Bind<IMethodFactory>(typeof(MethodAddFactory)).To<MethodAddFactory>();
+                .Bind<IMethodFactory>(typeof(MethodAddRemoveFactory)).To<MethodAddRemoveFactory>();
     }
 }

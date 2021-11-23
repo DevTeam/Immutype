@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 // ReSharper disable CollectionNeverUpdated.Global
+// ReSharper disable FieldCanBeMadeReadOnly.Global
 
 namespace Immutype.Tests.Integration
 {

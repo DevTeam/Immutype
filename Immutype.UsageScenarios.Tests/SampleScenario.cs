@@ -2,7 +2,8 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedMember.Global
 // ReSharper disable RedundantNameQualifier
-namespace Immutype.UsageScenarios.Tests
+// ReSharper disable CheckNamespace
+namespace Immutype.UsageScenarios.Tests.SampleScenario
 {
     using System.Collections.Immutable;
     using Shouldly;
@@ -10,15 +11,21 @@ namespace Immutype.UsageScenarios.Tests
 
     // $visible=true
     // $tag=1 Basics
-    // $priority=01
-    // $description=Records
+    // $priority=10
+    // $description=Sample scenario
     // {
     [Immutype.Target]
-    internal record Person(string Name, bool HasPassport = true, int Age = 0, ImmutableArray<Person> Friends = default);
+    internal record Person(
+        string Name,
+        bool HasPassport = true,
+        int Age = 0,
+        ImmutableArray<Person> Friends = default);
     
-    public class Records
+    public class SampleScenario
     {
+    // }
         [Fact]
+    // {
         public void Run()
         {
             var john = new Person("John", false, 15)
@@ -38,6 +45,10 @@ namespace Immutype.UsageScenarios.Tests
                 new Person("Sophia").WithAge(18));
             
             john.Friends.Length.ShouldBe(4);
+                
+            john = john.RemoveFriends(new Person("David").WithAge(16));
+
+            john.Friends.Length.ShouldBe(3);
         }
     }
     // }

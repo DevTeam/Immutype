@@ -18,6 +18,15 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Shouldly" Version="4.0.3" />
+        <None Update="README_TEMPLATE.md">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>README_TEMPLATE.tt</DependentUpon>
+        </None>
+        <None Update="README_TEMPLATE.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>README_TEMPLATE.md</LastGenOutput>
+        </None>
     </ItemGroup>
     
 </Project>
