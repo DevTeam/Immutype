@@ -11,7 +11,7 @@ namespace Immutype.UsageScenarios.Tests.SampleScenario
 
     // $visible=true
     // $tag=1 Basics
-    // $priority=10
+    // $priority=00
     // $description=Sample scenario
     // {
     [Immutype.Target]

@@ -2,32 +2,51 @@
 ## Usage Scenarios
 
 - Basics
-  - [Apply defaults](#apply-defaults)
+  - [Sample scenario](#sample-scenario)
   - [Array](#array)
-  - [Array](#array)
+  - [Applying defaults](#applying-defaults)
   - [Immutable collection](#immutable-collection)
+  - [Removing](#removing)
   - [Nullable collection](#nullable-collection)
   - [Set](#set)
-  - [Sample scenario](#sample-scenario)
 
-### Apply defaults
+### Sample scenario
 
 
 
 ``` CSharp
 [Immutype.Target]
-internal record Person(string Name = "John", int Age = 17);
+internal record Person(
+    string Name,
+    bool HasPassport = true,
+    int Age = 0,
+    ImmutableArray<Person> Friends = default);
 
-public class ApplyDefaults
+public class SampleScenario
 {
     public void Run()
     {
-        var john = new Person("David", 15)
-            .WithDefaultAge()
-            .WithDefaultName();
+        var john = new Person("John", false, 15)
+            .WithFriends(
+                new Person("David").WithAge(16),
+                new Person("James").WithAge(17)
+                    .WithFriends(new Person("Tyler").WithAge(16)));
+            
+        john.Friends.Length.ShouldBe(2);
+
+        john = john.WithAge(16).WithDefaultHasPassport();
+        john.Age.ShouldBe(16);
+        john.HasPassport.ShouldBeTrue();
+
+        john = john.AddFriends(
+            new Person("Daniel").WithAge(17),
+            new Person("Sophia").WithAge(18));
         
-        john.Name.ShouldBe("John");
-        john.Age.ShouldBe(17);
+        john.Friends.Length.ShouldBe(4);
+            
+        john = john.RemoveFriends(new Person("David").WithAge(16));
+
+        john.Friends.Length.ShouldBe(3);
     }
 }
 ```
@@ -54,6 +73,30 @@ public class Array
                 new Person("Daniel").WithAge(17));
         
         john.Friends.Length.ShouldBe(3);
+    }
+}
+```
+
+
+
+### Applying defaults
+
+
+
+``` CSharp
+[Immutype.Target]
+internal record Person(string Name = "John", int Age = 17);
+
+public class ApplyingDefaults
+{
+    public void Run()
+    {
+        var john = new Person("David", 15)
+            .WithDefaultAge()
+            .WithDefaultName();
+        
+        john.Name.ShouldBe("John");
+        john.Age.ShouldBe(17);
     }
 }
 ```
@@ -101,7 +144,7 @@ public class ImmutableCollection
 
 
 
-### Array
+### Removing
 
 
 
@@ -112,7 +155,7 @@ internal record Person(
     int Age = 0,
     params Person[] Friends);
 
-public class Remove
+public class Removing
 {
     public void Run()
     {
@@ -179,49 +222,6 @@ public class Set
                     .WithFriends(new Person("Tyler").WithAge(16)));
         
         john.Friends?.Count.ShouldBe(2);
-    }
-}
-```
-
-
-
-### Sample scenario
-
-
-
-``` CSharp
-[Immutype.Target]
-internal record Person(
-    string Name,
-    bool HasPassport = true,
-    int Age = 0,
-    ImmutableArray<Person> Friends = default);
-
-public class SampleScenario
-{
-    public void Run()
-    {
-        var john = new Person("John", false, 15)
-            .WithFriends(
-                new Person("David").WithAge(16),
-                new Person("James").WithAge(17)
-                    .WithFriends(new Person("Tyler").WithAge(16)));
-            
-        john.Friends.Length.ShouldBe(2);
-
-        john = john.WithAge(16).WithDefaultHasPassport();
-        john.Age.ShouldBe(16);
-        john.HasPassport.ShouldBeTrue();
-
-        john = john.AddFriends(
-            new Person("Daniel").WithAge(17),
-            new Person("Sophia").WithAge(18));
-        
-        john.Friends.Length.ShouldBe(4);
-            
-        john = john.RemoveFriends(new Person("David").WithAge(16));
-
-        john.Friends.Length.ShouldBe(3);
     }
 }
 ```

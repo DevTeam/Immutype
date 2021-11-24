@@ -3,7 +3,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable CheckNamespace
-namespace Immutype.UsageScenarios.Tests.Remove
+namespace Immutype.UsageScenarios.Tests.Removing
 {
     using Shouldly;
     using Xunit;
@@ -11,7 +11,7 @@ namespace Immutype.UsageScenarios.Tests.Remove
     // $visible=true
     // $tag=1 Basics
     // $priority=02
-    // $description=Array
+    // $description=Removing
     // {
     [Immutype.Target]
     internal record Person(
@@ -19,7 +19,7 @@ namespace Immutype.UsageScenarios.Tests.Remove
         int Age = 0,
         params Person[] Friends);
 
-    public class Remove
+    public class Removing
     {
     // }
         [Fact]

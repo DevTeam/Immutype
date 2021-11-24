@@ -10,7 +10,7 @@ namespace Immutype.UsageScenarios.Tests.Array
 
     // $visible=true
     // $tag=1 Basics
-    // $priority=02
+    // $priority=01
     // $description=Array
     // {
     [Immutype.Target]

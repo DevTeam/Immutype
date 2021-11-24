@@ -51,7 +51,23 @@ _Immutype_ supports nullable [reference](https://docs.microsoft.com/en-us/dotnet
 - ```ImmutableStack<T>```
 - ```IImmutableStack<T>```
 
-_Immutype_ supports [IIncrementalGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.iincrementalgenerator) as well as [ISourceGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.isourcegenerator) and does not use semantic model, so it works quite effective. 
+_Immutype_ supports [IIncrementalGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.iincrementalgenerator) as well as [ISourceGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.isourcegenerator) and does not use semantic model, so it works quite effective.
+
+## NuGet package
+
+[![NuGet](https://buildstats.info/nuget/Immutype)](https://www.nuget.org/packages/Immutype)
+
+- Package Manager
+
+  ```
+  Install-Package Immutype
+  ```
+
+- .NET CLI
+
+  ```
+  dotnet add package Immutype
+  ```
 
 ## Development environment requirements
 
