@@ -89,11 +89,11 @@ object DeployBuildType: BuildType({
     }
     vcs { root(Repo) }
     steps {
-        /*csharpScript {
+        csharpScript {
             name = "Evaluate a next NuGet package version"
             content = Settings.getNextVersionScript
             arguments = "%packageId%"
-        }*/
+        }
 
         for (version in Settings.versions) {
             val versionArgs = version.args
@@ -127,12 +127,12 @@ object DeployBuildType: BuildType({
             projects = "Merge.csproj"
         }
 
-        /*dotnetNugetPush {
+        dotnetNugetPush {
             name = "Push to NuGet"
             packages = "%packagePath%"
             serverUrl = "https://api.nuget.org/v3/index.json"
             apiKey = "%NuGetKey%"
-        }*/
+        }
     }
 
     failureConditions {

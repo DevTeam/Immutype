@@ -2,6 +2,7 @@
 // ReSharper disable MemberCanBeMadeStatic.Global
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable ConvertIfStatementToConditionalTernaryExpression
+// ReSharper disable InvertIf
 namespace Immutype.Core
 {
     using System.Collections.Generic;
@@ -27,10 +28,11 @@ namespace Immutype.Core
         public IEnumerable<Source> Build(IEnumerable<SyntaxTree> trees, CancellationToken cancellationToken) =>
             from syntaxTree in trees
             where !cancellationToken.IsCancellationRequested
-            from recordSyntax in syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>()
+            from typeDeclarationSyntax in syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>()
             where !cancellationToken.IsCancellationRequested
-            where _typeSyntaxFilter.IsAccepted(recordSyntax)
-            from source in Build(recordSyntax, cancellationToken) select source;
+            where _typeSyntaxFilter.IsAccepted(typeDeclarationSyntax)
+            from source in Build(typeDeclarationSyntax, cancellationToken)
+            select source;
         
         public IEnumerable<Source> Build(TypeDeclarationSyntax typeDeclarationSyntax, CancellationToken cancellationToken)
         {
@@ -38,17 +40,19 @@ namespace Immutype.Core
             {
                 RecordDeclarationSyntax recordDeclarationSyntax => recordDeclarationSyntax.ParameterList?.Parameters,
                 _ => (
-                    from ctor in typeDeclarationSyntax.Members.OfType<ConstructorDeclarationSyntax>()
-                    where !cancellationToken.IsCancellationRequested
-                    where ctor.Modifiers.Any(i => i.IsKind(SyntaxKind.PublicKeyword) || i.IsKind(SyntaxKind.InternalKeyword)) || !ctor.Modifiers.Any()
-                    orderby ctor.ParameterList.Parameters.Count descending select ctor
-                    )
+                        from ctor in typeDeclarationSyntax.Members.OfType<ConstructorDeclarationSyntax>()
+                        where !cancellationToken.IsCancellationRequested
+                        where ctor.Modifiers.Any(i => i.IsKind(SyntaxKind.PublicKeyword) || i.IsKind(SyntaxKind.InternalKeyword)) || !ctor.Modifiers.Any()
+                        orderby ctor.ParameterList.Parameters.Count descending
+                        select ctor)
                     .FirstOrDefault()
                     ?.ParameterList
                     .Parameters
             };
 
-            return parameters != default ? _unitFactory.Create(typeDeclarationSyntax, parameters, cancellationToken) : Enumerable.Empty<Source>();
+            return parameters != default
+                ? _unitFactory.Create(typeDeclarationSyntax, parameters, cancellationToken)
+                : Enumerable.Empty<Source>();
         }
     }
 }

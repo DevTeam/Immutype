@@ -23,13 +23,17 @@ namespace Immutype
             var typeSyntaxFilter = Composer.ResolveITypeSyntaxFilter();
             var changes = context.SyntaxProvider.CreateSyntaxProvider(
                 (node, token) => node is TypeDeclarationSyntax typeDeclarationSyntax && typeSyntaxFilter.IsAccepted(typeDeclarationSyntax),
-                (syntaxContext, token) => (TypeDeclarationSyntax)syntaxContext.Node);
+                (syntaxContext, token) => (TypeDeclarationSyntax)syntaxContext.Node)
+                .Collect();
             
             context.RegisterSourceOutput(changes, (ctx, syntax) =>
             {
-                foreach (var source in sourceBuilder.Build(syntax, ctx.CancellationToken))
+                foreach (var typeDeclarationSyntax in syntax)
                 {
-                    ctx.AddSource(source.HintName, source.Code);
+                    foreach (var source in sourceBuilder.Build(typeDeclarationSyntax, ctx.CancellationToken))
+                    {
+                        ctx.AddSource(source.HintName, source.Code);
+                    }
                 }
             });
         }
