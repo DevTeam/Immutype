@@ -45,6 +45,8 @@ namespace Immutype.Core
             var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
             yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}")
                 .AddParameterListParameters(thisParameter, newArgumentParameter)
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(newArgumentParameter).ToArray())
                 .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments));
 
             if (argumentParameter != newArgumentParameter && argumentParameter.Type is not ArrayTypeSyntax)
@@ -52,6 +54,8 @@ namespace Immutype.Core
                 var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(SyntaxFactory.IdentifierName(currentParameter.Identifier)) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
                 yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}")
                     .AddParameterListParameters(thisParameter, argumentParameter)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(argumentParameter).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
             }
 
@@ -60,6 +64,7 @@ namespace Immutype.Core
                 var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(currentParameter.Default.Value) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
                 yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"WithDefault{name}")
                     .AddParameterListParameters(thisParameter)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
             }
         }

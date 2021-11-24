@@ -53,6 +53,43 @@ namespace Immutype.Core
                 SyntaxFactory.IdentifierName(thisParameter.Identifier),
                 SyntaxFactory.IdentifierName(GetIdentifier(owner, parameter.Identifier)));
         
+        public IEnumerable<StatementSyntax> CreateGuards(ParameterSyntax parameter)
+        {
+            if (parameter.Type is null or NullableTypeSyntax)
+            {
+                yield break;
+            }
+            
+            var checkNotValueType = SyntaxFactory.PrefixUnaryExpression(
+                SyntaxKind.LogicalNotExpression,
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.TypeOfExpression(parameter.Type),
+                    SyntaxFactory.IdentifierName(nameof(Type.IsValueType))));
+
+            var checkDefault = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("object"),
+                        SyntaxFactory.IdentifierName(nameof(Equals))))
+                .AddArgumentListArguments(
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(parameter.Identifier)),
+                    SyntaxFactory.Argument(SyntaxFactory.DefaultExpression(parameter.Type)));
+
+            yield return 
+                SyntaxFactory.IfStatement(
+                    SyntaxFactory.BinaryExpression(SyntaxKind.LogicalAndExpression, checkNotValueType, checkDefault),
+                    SyntaxFactory.ThrowStatement(
+                        SyntaxFactory.ObjectCreationExpression(
+                                SyntaxFactory.IdentifierName(
+                                    SyntaxFactory.Identifier($"System.ArgumentNullException"))).
+                            AddArgumentListArguments(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.StringLiteralExpression,
+                                        SyntaxFactory.Literal(parameter.Identifier.Text))))));
+        }
+        
         private SyntaxToken GetIdentifier(TypeDeclarationSyntax owner, SyntaxToken identifier)
         {
             foreach (var memberDeclarationSyntax in owner.Members.Where(memberDeclarationSyntax => IsAccessible(memberDeclarationSyntax.Modifiers)))

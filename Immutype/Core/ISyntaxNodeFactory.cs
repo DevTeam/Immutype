@@ -17,5 +17,7 @@ namespace Immutype.Core
         ArgumentSyntax CreateTransientArgument(TypeDeclarationSyntax owner, ParameterSyntax thisParameter, ParameterSyntax parameter);
         
         MemberAccessExpressionSyntax CreateTransientArgumentExpression(TypeDeclarationSyntax owner, ParameterSyntax thisParameter, ParameterSyntax parameter);
+
+        IEnumerable<StatementSyntax> CreateGuards(ParameterSyntax parameter);
     }
 }

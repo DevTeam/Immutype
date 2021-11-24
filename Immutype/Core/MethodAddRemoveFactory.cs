@@ -1,5 +1,6 @@
 namespace Immutype.Core
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.CodeAnalysis.CSharp;
@@ -41,13 +42,17 @@ namespace Immutype.Core
             var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
             yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{name}")
                 .AddParameterListParameters(thisParameter, arrayParameter)
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(arrayParameter).ToArray())
                 .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, CreateArguments(nameof(Enumerable.Concat), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter)));
             
             yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Remove{name}")
                 .AddParameterListParameters(thisParameter, arrayParameter)
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(arrayParameter).ToArray())
                 .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, CreateArguments(nameof(Enumerable.Except), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter)));
         }
-        
+
         private TypeSyntax? GetElementType(TypeSyntax typeSyntax) =>
             _syntaxNodeFactory.GetUnqualified(typeSyntax) switch
             {
