@@ -82,7 +82,7 @@ namespace Immutype.Core
                     SyntaxFactory.ThrowStatement(
                         SyntaxFactory.ObjectCreationExpression(
                                 SyntaxFactory.IdentifierName(
-                                    SyntaxFactory.Identifier($"System.ArgumentNullException"))).
+                                    SyntaxFactory.Identifier("System.ArgumentNullException"))).
                             AddArgumentListArguments(
                                 SyntaxFactory.Argument(
                                     SyntaxFactory.LiteralExpression(

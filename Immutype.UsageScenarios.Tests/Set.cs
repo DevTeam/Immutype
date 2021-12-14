@@ -28,7 +28,7 @@ namespace Immutype.UsageScenarios.Tests.Set
         public void Run()
         {
             var john = new Person("John",15)
-                .WithFriends(
+                .AddFriends(
                     new Person("David").WithAge(16),
                     new Person("David").WithAge(16),
                     new Person("James").WithAge(17)

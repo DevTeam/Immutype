@@ -1,8 +1,6 @@
 ﻿#if ROSLYN40
 namespace Immutype
 {
-    using Immutype;
-    using Immutype.Core;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -22,8 +20,8 @@ namespace Immutype
             var sourceBuilder = Composer.ResolveISourceBuilder();
             var typeSyntaxFilter = Composer.ResolveITypeSyntaxFilter();
             var changes = context.SyntaxProvider.CreateSyntaxProvider(
-                (node, token) => node is TypeDeclarationSyntax typeDeclarationSyntax && typeSyntaxFilter.IsAccepted(typeDeclarationSyntax),
-                (syntaxContext, token) => (TypeDeclarationSyntax)syntaxContext.Node)
+                (node, _) => node is TypeDeclarationSyntax typeDeclarationSyntax && typeSyntaxFilter.IsAccepted(typeDeclarationSyntax),
+                (syntaxContext, _) => (TypeDeclarationSyntax)syntaxContext.Node)
                 .Collect();
             
             context.RegisterSourceOutput(changes, (ctx, syntax) =>

@@ -290,6 +290,28 @@ namespace Immutype.Tests.Integration
         }
         
         [Fact]
+        public void ShouldCreateRecordAddSingleArrayDefault()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(99, 44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(int[] vals = default);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "99,44" }, generatedCode);
+        }
+        
+        [Fact]
         public void ShouldCreateStructWithSingleValue()
         {
             // Given
@@ -431,6 +453,28 @@ namespace Immutype.Tests.Integration
             // Then
             output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
         }
+
+        [Fact]
+        public void ShouldSupportImmutableArrayWhenDefault()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(22, 55).AddVals(99,44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Immutable;
+                using Immutype;
+
+                [Target]
+                public record Rec(ImmutableArray<int> vals = default);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
+        }
         
         [Fact]
         public void ShouldSupportImmutableQueue()
@@ -454,6 +498,29 @@ namespace Immutype.Tests.Integration
             output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
         }
         
+        [Fact]
+        public void ShouldSupportImmutableQueueWhenDefault()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec().WithVals(22, 55).AddVals(99,44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Immutable;
+                using Immutype;
+
+                [Target]
+                public record Rec(ImmutableQueue<int> vals = default);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            // Then
+            output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
+        }
+
         [Fact]
         public void ShouldSupportImmutableStack()
         {
@@ -600,6 +667,28 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(HashSet<int> vals);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+            
+            // Then
+            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportHashSetWithDefault()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(55).AddVals(99, 55, 44).vals));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(HashSet<int> vals = default);
             }".Run(out var generatedCode, new RunOptions { Statements = statements });
             
             // Then

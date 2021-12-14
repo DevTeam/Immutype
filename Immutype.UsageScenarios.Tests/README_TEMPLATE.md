@@ -27,7 +27,7 @@ public class SampleScenario
     public void Run()
     {
         var john = new Person("John", false, 15)
-            .WithFriends(
+            .AddFriends(
                 new Person("David").WithAge(16),
                 new Person("James").WithAge(17)
                     .WithFriends(new Person("Tyler").WithAge(16)));
@@ -215,7 +215,7 @@ public class Set
     public void Run()
     {
         var john = new Person("John",15)
-            .WithFriends(
+            .AddFriends(
                 new Person("David").WithAge(16),
                 new Person("David").WithAge(16),
                 new Person("James").WithAge(17)

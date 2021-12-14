@@ -35,7 +35,7 @@ namespace Immutype.Core
 
             return typeDeclarationSyntax switch
             {
-                RecordDeclarationSyntax recordDeclarationSyntax => recordDeclarationSyntax.ParameterList is { Parameters: { Count: > 0 } },
+                RecordDeclarationSyntax recordDeclarationSyntax => recordDeclarationSyntax.ParameterList is { Parameters.Count: > 0 },
                 _ => typeDeclarationSyntax.Members.OfType<ConstructorDeclarationSyntax>().Any(i => i.ParameterList.Parameters.Count > 0)
             };
         }

@@ -30,7 +30,7 @@ namespace Immutype.Core
             var argumentParameter = currentParameter.WithDefault(default);
             var newArgumentParameter = argumentParameter;
             var arguments = new List<ArgumentSyntax>();
-            foreach (ParameterSyntax parameter in curParameters)
+            foreach (var parameter in curParameters)
             {
                 if (parameter == currentParameter)
                 {
@@ -101,7 +101,7 @@ namespace Immutype.Core
                     break;
             }
 
-            return result!;
+            return result;
         }
     }
 }

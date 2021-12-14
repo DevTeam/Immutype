@@ -64,7 +64,7 @@ namespace Immutype.Core
         
         private IEnumerable<ArgumentSyntax> CreateArguments(string enumerableMethod, TypeDeclarationSyntax owner, ParameterSyntax thisParameter, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax arrayParameter)
         {
-            foreach (ParameterSyntax parameter in parameters)
+            foreach (var parameter in parameters)
             {
                 if (parameter == currentParameter)
                 {
@@ -87,6 +87,12 @@ namespace Immutype.Core
             ExpressionSyntax? result = default;
             if (thisExpression != default)
             {
+                var defaultExpression = CreateExpression(enumerableMethod, default, currentParameterType, arrayParameter);
+                thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ConditionalExpression(
+                    SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, thisExpression, SyntaxFactory.DefaultExpression(currentParameterType!)),
+                    defaultExpression,
+                    thisExpression));
+
                 result = SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
@@ -99,7 +105,16 @@ namespace Immutype.Core
             {
                 case NullableTypeSyntax nullableTypeSyntax:
                     var defaultExpression = CreateExpression(enumerableMethod, default, nullableTypeSyntax.ElementType, arrayParameter);
-                    thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression, thisExpression!, defaultExpression));
+                    if (thisExpression != default)
+                    {
+                        thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression, thisExpression!, defaultExpression));
+                    }
+                    else
+                    {
+                        thisExpression = SyntaxFactory.DefaultExpression(nullableTypeSyntax.ElementType);
+                    }
+
+                    // ReSharper disable once TailRecursiveCall
                     return CreateExpression(enumerableMethod, thisExpression, nullableTypeSyntax.ElementType, arrayParameter);
 
                 case GenericNameSyntax genericNameSyntax:
@@ -122,8 +137,11 @@ namespace Immutype.Core
                     else
                     {
                         return SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.GenericName(nameof(Enumerable.Empty))
-                                .AddTypeArgumentListArguments(arrayTypeSyntax.ElementType));
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName("System.Array"),
+                                SyntaxFactory.GenericName(nameof(Enumerable.Empty))
+                                    .AddTypeArgumentListArguments(arrayTypeSyntax.ElementType)));
                     }
             }
 
