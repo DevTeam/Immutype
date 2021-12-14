@@ -16,19 +16,20 @@ namespace Immutype
                     ctx.AddSource(source.HintName, source.Code);
                 }
             });
-
+            
             var sourceBuilder = Composer.ResolveISourceBuilder();
             var typeSyntaxFilter = Composer.ResolveITypeSyntaxFilter();
             var changes = context.SyntaxProvider.CreateSyntaxProvider(
                 (node, _) => node is TypeDeclarationSyntax typeDeclarationSyntax && typeSyntaxFilter.IsAccepted(typeDeclarationSyntax),
                 (syntaxContext, _) => (TypeDeclarationSyntax)syntaxContext.Node)
+                .Combine(context.ParseOptionsProvider)
                 .Collect();
-            
-            context.RegisterSourceOutput(changes, (ctx, syntax) =>
+
+            context.RegisterSourceOutput(changes, (ctx, changes) =>
             {
-                foreach (var typeDeclarationSyntax in syntax)
+                foreach (var (typeDeclarationSyntax, options) in changes)
                 {
-                    foreach (var source in sourceBuilder.Build(typeDeclarationSyntax, ctx.CancellationToken))
+                    foreach (var source in sourceBuilder.Build(options, typeDeclarationSyntax, ctx.CancellationToken))
                     {
                         ctx.AddSource(source.HintName, source.Code);
                     }

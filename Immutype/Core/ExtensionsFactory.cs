@@ -18,7 +18,7 @@ namespace Immutype.Core
         public ExtensionsFactory(IMethodsFactory methodsFactory) =>
             _methodsFactory = methodsFactory;
 
-        public IEnumerable<Source> Create(TypeDeclarationSyntax typeDeclarationSyntax, IReadOnlyList<ParameterSyntax> parameters, CancellationToken cancellationToken)
+        public IEnumerable<Source> Create(ParseOptions parseOptions, TypeDeclarationSyntax typeDeclarationSyntax, IReadOnlyList<ParameterSyntax> parameters, CancellationToken cancellationToken)
         {
             var ns = typeDeclarationSyntax.Ancestors().OfType<NamespaceDeclarationSyntax>().Reverse().ToArray();
             var typeName = string.Join(".", ns.Select(i => i.Name.ToString()).Concat(new []{typeDeclarationSyntax.Identifier.Text}));
@@ -27,7 +27,7 @@ namespace Immutype.Core
             var extensionsClass = SyntaxFactory.ClassDeclaration(className)
                 .AddModifiers(typeDeclarationSyntax.Modifiers.Where(i => !i.IsKind(SyntaxKind.ReadOnlyKeyword) && !i.IsKind(SyntaxKind.PartialKeyword)).ToArray())
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword))
-                .AddMembers(_methodsFactory.Create(typeDeclarationSyntax, typeSyntax, parameters, cancellationToken).ToArray());
+                .AddMembers(_methodsFactory.Create(parseOptions, typeDeclarationSyntax, typeSyntax, parameters, cancellationToken).ToArray());
 
             var usingDirectives = typeDeclarationSyntax.SyntaxTree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>()
                 .Concat(new []

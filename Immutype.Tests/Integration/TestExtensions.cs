@@ -56,7 +56,7 @@ namespace Immutype.Tests.Integration
 
             var generatedSources = new List<Source>();
             generatedSources.AddRange(Composer.ResolveIComponentsBuilder().Build(CancellationToken.None));
-            generatedSources.AddRange(Composer.ResolveISourceBuilder().Build(compilation.SyntaxTrees, CancellationToken.None));
+            generatedSources.AddRange(Composer.ResolveISourceBuilder().Build(parseOptions, compilation.SyntaxTrees, CancellationToken.None));
             generatedCode = string.Join(Environment.NewLine, generatedSources.Select((src, index) => $"Generated {index + 1}" + Environment.NewLine + Environment.NewLine + src.Code));
             
             compilation = compilation

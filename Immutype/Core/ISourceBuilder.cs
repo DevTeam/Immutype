@@ -9,8 +9,8 @@ namespace Immutype.Core
 
     internal interface ISourceBuilder
     {
-        IEnumerable<Source> Build(IEnumerable<SyntaxTree> trees, CancellationToken cancellationToken);
+        IEnumerable<Source> Build(ParseOptions parseOptions, IEnumerable<SyntaxTree> trees, CancellationToken cancellationToken);
 
-        IEnumerable<Source> Build(TypeDeclarationSyntax typeDeclarationSyntax, CancellationToken cancellationToken);
+        IEnumerable<Source> Build(ParseOptions parseOptions, TypeDeclarationSyntax typeDeclarationSyntax, CancellationToken cancellationToken);
     }
 }

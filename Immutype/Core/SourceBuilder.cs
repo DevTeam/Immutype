@@ -28,16 +28,16 @@ namespace Immutype.Core
             _syntaxNodeFactory = syntaxNodeFactory;
         }
 
-        public IEnumerable<Source> Build(IEnumerable<SyntaxTree> trees, CancellationToken cancellationToken) =>
+        public IEnumerable<Source> Build(ParseOptions parseOptions, IEnumerable<SyntaxTree> trees, CancellationToken cancellationToken) =>
             from syntaxTree in trees
             where !cancellationToken.IsCancellationRequested
             from typeDeclarationSyntax in syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>()
             where !cancellationToken.IsCancellationRequested
             where _typeSyntaxFilter.IsAccepted(typeDeclarationSyntax)
-            from source in Build(typeDeclarationSyntax, cancellationToken)
+            from source in Build(parseOptions, typeDeclarationSyntax, cancellationToken)
             select source;
         
-        public IEnumerable<Source> Build(TypeDeclarationSyntax typeDeclarationSyntax, CancellationToken cancellationToken)
+        public IEnumerable<Source> Build(ParseOptions parseOptions, TypeDeclarationSyntax typeDeclarationSyntax, CancellationToken cancellationToken)
         {
             IReadOnlyList<ParameterSyntax>? parameters = default;
             if (typeDeclarationSyntax is RecordDeclarationSyntax recordDeclarationSyntax && recordDeclarationSyntax.ParameterList?.Parameters.Count != 0)
@@ -57,7 +57,7 @@ namespace Immutype.Core
                 .Parameters;
             
             return parameters != default
-                ? _unitFactory.Create(typeDeclarationSyntax, parameters, cancellationToken)
+                ? _unitFactory.Create(parseOptions, typeDeclarationSyntax, parameters, cancellationToken)
                 : Enumerable.Empty<Source>();
         }
     }

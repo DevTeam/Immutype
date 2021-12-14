@@ -19,8 +19,8 @@ namespace Immutype
             {
                 context.AddSource(source.HintName, source.Code);
             }
-                
-            foreach (var source in Composer.ResolveISourceBuilder().Build(context.Compilation.SyntaxTrees, context.CancellationToken))
+            
+            foreach (var source in Composer.ResolveISourceBuilder().Build(context.ParseOptions, context.Compilation.SyntaxTrees, context.CancellationToken))
             {
                 context.AddSource(source.HintName, source.Code);
             }

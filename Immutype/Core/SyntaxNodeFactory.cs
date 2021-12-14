@@ -23,6 +23,15 @@ namespace Immutype.Core
 
         private static readonly AttributeSyntax PureAttr = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(typeof(PureAttribute).FullName));
         
+        public bool IsValueType(TypeDeclarationSyntax typeDeclarationSyntax) => 
+            typeDeclarationSyntax switch
+            {
+                StructDeclarationSyntax => true,
+                RecordDeclarationSyntax => typeDeclarationSyntax.Modifiers.Any(i => i.IsKind(SyntaxKind.StructKeyword)),
+                ClassDeclarationSyntax => false,
+                _ => false
+            };
+        
         public bool HasTargetAttribute(MemberDeclarationSyntax memberDeclarationSyntax) =>
             memberDeclarationSyntax.AttributeLists
                 .SelectMany(i => i.Attributes)
