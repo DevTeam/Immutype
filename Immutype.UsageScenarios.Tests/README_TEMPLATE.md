@@ -9,6 +9,7 @@
   - [Removing](#removing)
   - [Nullable collection](#nullable-collection)
   - [Set](#set)
+  - [Record with constructor](#record-with-constructor)
 
 ### Sample scenario
 
@@ -217,6 +218,58 @@ public class Set
         var john = new Person("John",15)
             .AddFriends(
                 new Person("David").WithAge(16),
+                new Person("David").WithAge(16),
+                new Person("James").WithAge(17)
+                    .WithFriends(new Person("Tyler").WithAge(16)));
+        
+        john.Friends?.Count.ShouldBe(2);
+    }
+}
+```
+
+
+
+### Record with constructor
+
+
+
+``` CSharp
+[Immutype.Target]
+internal record Person
+{
+    public Person(
+        string name,
+        int? age = default,
+        ICollection<Person>? friends = default)
+    {
+        Name = name;
+        Age = age;
+        Friends = friends;
+    }
+
+    public string Name { get; }
+
+    public int? Age { get; }
+
+    public ICollection<Person>? Friends { get; }
+
+    public void Deconstruct(
+        out string name,
+        out int? age,
+        out ICollection<Person>? friends)
+    {
+        name = Name;
+        age = Age;
+        friends = Friends;
+    }
+}
+
+public class RecordWithConstructor
+{
+    public void Run()
+    {
+        var john = new Person("John",15)
+            .WithFriends(
                 new Person("David").WithAge(16),
                 new Person("James").WithAge(17)
                     .WithFriends(new Person("Tyler").WithAge(16)));

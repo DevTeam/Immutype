@@ -36,20 +36,22 @@ namespace Immutype.Core
         
         public IEnumerable<Source> Build(TypeDeclarationSyntax typeDeclarationSyntax, CancellationToken cancellationToken)
         {
-            IReadOnlyList<ParameterSyntax>? parameters = typeDeclarationSyntax switch
+            IReadOnlyList<ParameterSyntax>? parameters = default;
+            if (typeDeclarationSyntax is RecordDeclarationSyntax recordDeclarationSyntax && recordDeclarationSyntax.ParameterList?.Parameters.Count != 0)
             {
-                RecordDeclarationSyntax recordDeclarationSyntax => recordDeclarationSyntax.ParameterList?.Parameters,
-                _ => (
-                        from ctor in typeDeclarationSyntax.Members.OfType<ConstructorDeclarationSyntax>()
-                        where !cancellationToken.IsCancellationRequested
-                        where ctor.Modifiers.Any(i => i.IsKind(SyntaxKind.PublicKeyword) || i.IsKind(SyntaxKind.InternalKeyword)) || !ctor.Modifiers.Any()
-                        orderby ctor.ParameterList.Parameters.Count descending
-                        select ctor)
-                    .FirstOrDefault()
-                    ?.ParameterList
-                    .Parameters
-            };
+                parameters = recordDeclarationSyntax.ParameterList?.Parameters;
+            }
 
+            parameters ??= (
+                    from ctor in typeDeclarationSyntax.Members.OfType<ConstructorDeclarationSyntax>()
+                    where !cancellationToken.IsCancellationRequested
+                    where ctor.ParameterList.Parameters.Count > 0 && ctor.Modifiers.Any(i => i.IsKind(SyntaxKind.PublicKeyword) || i.IsKind(SyntaxKind.InternalKeyword)) || !ctor.Modifiers.Any()
+                    orderby ctor.ParameterList.Parameters.Count descending
+                    select ctor)
+                .FirstOrDefault()
+                ?.ParameterList
+                .Parameters;
+            
             return parameters != default
                 ? _unitFactory.Create(typeDeclarationSyntax, parameters, cancellationToken)
                 : Enumerable.Empty<Source>();

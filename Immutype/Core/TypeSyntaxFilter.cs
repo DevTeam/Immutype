@@ -2,6 +2,8 @@
 namespace Immutype.Core
 {
     using System.Linq;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
     internal class TypeSyntaxFilter : ITypeSyntaxFilter
@@ -33,11 +35,14 @@ namespace Immutype.Core
                 return false;
             }
 
-            return typeDeclarationSyntax switch
+            if (typeDeclarationSyntax is RecordDeclarationSyntax { ParameterList.Parameters.Count: > 0 })
             {
-                RecordDeclarationSyntax recordDeclarationSyntax => recordDeclarationSyntax.ParameterList is { Parameters.Count: > 0 },
-                _ => typeDeclarationSyntax.Members.OfType<ConstructorDeclarationSyntax>().Any(i => i.ParameterList.Parameters.Count > 0)
-            };
+                return true;
+            }
+
+            return typeDeclarationSyntax.Members
+                .OfType<ConstructorDeclarationSyntax>()
+                .Any(ctor => ctor.ParameterList.Parameters.Count > 0 && ctor.Modifiers.Any(i => i.IsKind(SyntaxKind.PublicKeyword) || i.IsKind(SyntaxKind.InternalKeyword)) || !ctor.Modifiers.Any());
         }
     }
 }

@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Immutype.Tests.Integration
 {
+    using System.Security.Cryptography.X509Certificates;
     using Microsoft.CodeAnalysis;
 
     public class Tests
@@ -46,6 +47,34 @@ namespace Immutype.Tests.Integration
 
             // Then
             output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldCreateRecordWithCtor()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99).Val);";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                
+                [Immutype.TargetAttribute()]
+                public record Rec
+                {
+                    public Rec(int val)
+                    {
+                        Val = val;
+                    }
+
+                    public int Val { get; }
+                }
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "99" }, generatedCode);
         }
 
         [Fact]
