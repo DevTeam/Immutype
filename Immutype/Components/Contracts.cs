@@ -4,6 +4,6 @@ namespace Immutype
 {
     using System;
     
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Constructor, Inherited = false)]
     public class TargetAttribute: Attribute { }
 }

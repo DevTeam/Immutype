@@ -16,13 +16,16 @@ namespace Immutype.Core
     {
         private readonly ITypeSyntaxFilter _typeSyntaxFilter;
         private readonly IUnitFactory _unitFactory;
+        private readonly ISyntaxNodeFactory _syntaxNodeFactory;
 
         public SourceBuilder(
             ITypeSyntaxFilter typeSyntaxFilter,
-            IUnitFactory unitFactory)
+            IUnitFactory unitFactory,
+            ISyntaxNodeFactory syntaxNodeFactory)
         {
             _typeSyntaxFilter = typeSyntaxFilter;
             _unitFactory = unitFactory;
+            _syntaxNodeFactory = syntaxNodeFactory;
         }
 
         public IEnumerable<Source> Build(IEnumerable<SyntaxTree> trees, CancellationToken cancellationToken) =>
@@ -46,7 +49,8 @@ namespace Immutype.Core
                     from ctor in typeDeclarationSyntax.Members.OfType<ConstructorDeclarationSyntax>()
                     where !cancellationToken.IsCancellationRequested
                     where ctor.ParameterList.Parameters.Count > 0 && ctor.Modifiers.Any(i => i.IsKind(SyntaxKind.PublicKeyword) || i.IsKind(SyntaxKind.InternalKeyword)) || !ctor.Modifiers.Any()
-                    orderby ctor.ParameterList.Parameters.Count descending
+                    let weight = ctor.ParameterList.Parameters.Count + (_syntaxNodeFactory.HasTargetAttribute(ctor) ? 0xffff : 0)
+                    orderby weight descending
                     select ctor)
                 .FirstOrDefault()
                 ?.ParameterList

@@ -10,10 +10,8 @@ namespace Immutype.Core
     {
         private readonly ISyntaxNodeFactory _syntaxNodeFactory;
 
-        public TypeSyntaxFilter(ISyntaxNodeFactory syntaxNodeFactory)
-        {
+        public TypeSyntaxFilter(ISyntaxNodeFactory syntaxNodeFactory) =>
             _syntaxNodeFactory = syntaxNodeFactory;
-        }
 
         public bool IsAccepted(TypeDeclarationSyntax typeDeclarationSyntax)
         {
@@ -27,10 +25,7 @@ namespace Immutype.Core
                 return false;
             }
             
-            if (typeDeclarationSyntax.AttributeLists
-                .SelectMany(i => i.Attributes)
-                .Select(i => _syntaxNodeFactory.GetUnqualified(i.Name)?.ToString())
-                .All(i => i != "Target" && i != "TargetAttribute"))
+            if (!_syntaxNodeFactory.HasTargetAttribute(typeDeclarationSyntax))
             {
                 return false;
             }
@@ -44,5 +39,7 @@ namespace Immutype.Core
                 .OfType<ConstructorDeclarationSyntax>()
                 .Any(ctor => ctor.ParameterList.Parameters.Count > 0 && ctor.Modifiers.Any(i => i.IsKind(SyntaxKind.PublicKeyword) || i.IsKind(SyntaxKind.InternalKeyword)) || !ctor.Modifiers.Any());
         }
+
+        
     }
 }

@@ -6,6 +6,8 @@ namespace Immutype.Core
 
     internal interface ISyntaxNodeFactory
     {
+        bool HasTargetAttribute(MemberDeclarationSyntax memberDeclarationSyntax);
+            
         TypeSyntax? GetUnqualified(TypeSyntax? typeSyntax);
 
         bool IsAccessible(IEnumerable<SyntaxToken> modifiers);

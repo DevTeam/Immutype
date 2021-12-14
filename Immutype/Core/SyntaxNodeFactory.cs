@@ -23,6 +23,12 @@ namespace Immutype.Core
 
         private static readonly AttributeSyntax PureAttr = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(typeof(PureAttribute).FullName));
         
+        public bool HasTargetAttribute(MemberDeclarationSyntax memberDeclarationSyntax) =>
+            memberDeclarationSyntax.AttributeLists
+                .SelectMany(i => i.Attributes)
+                .Select(i => GetUnqualified(i.Name)?.ToString())
+                .Any(i => i is "Target" or "TargetAttribute");
+
         public TypeSyntax? GetUnqualified(TypeSyntax? typeSyntax) =>
             typeSyntax is QualifiedNameSyntax qualifiedType ? qualifiedType.Right : typeSyntax;
         

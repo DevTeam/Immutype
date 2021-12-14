@@ -96,6 +96,7 @@ _Immutype_ supports [IIncrementalGenerator](https://docs.microsoft.com/en-us/dot
   - [Nullable collection](#nullable-collection)
   - [Set](#set)
   - [Record with constructor](#record-with-constructor)
+  - [Explicit constructor choice](#explicit-constructor-choice)
 
 ### Sample scenario
 
@@ -361,6 +362,60 @@ public class RecordWithConstructor
                     .WithFriends(new Person("Tyler").WithAge(16)));
         
         john.Friends?.Count.ShouldBe(2);
+    }
+}
+```
+
+
+
+### Explicit constructor choice
+
+
+
+``` CSharp
+[Immutype.Target]
+internal readonly struct Person
+{
+    public readonly string Name;
+    public readonly int Age;
+    public readonly IImmutableList<Person> Friends;
+
+    // You can explicitly select a constructor by marking it with the [Immutype.Target] attribute
+    [Immutype.Target]
+    public Person(
+        string name,
+        int age = 0,
+        IImmutableList<Person>? friends = default)
+    {
+        Name = name;
+        Age = age;
+        Friends = friends ?? ImmutableList<Person>.Empty;
+    }
+    
+    public Person(
+        string name,
+        int age,
+        IImmutableList<Person>? friends,
+        int someArg = 99)
+    {
+        Name = name;
+        Age = age;
+        Friends = friends ?? ImmutableList<Person>.Empty;
+    }
+};
+
+public class ExplicitConstructorChoice
+{
+    public void Run()
+    {
+        var john = new Person("John",15)
+            .WithFriends(
+                new Person("David").WithAge(16),
+                new Person("James").WithAge(17))
+            .AddFriends(
+                new Person("David").WithAge(22));
+        
+        john.Friends.Count.ShouldBe(3);
     }
 }
 ```
