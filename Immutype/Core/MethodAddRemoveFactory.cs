@@ -1,6 +1,5 @@
 namespace Immutype.Core
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.CodeAnalysis.CSharp;
@@ -68,12 +67,15 @@ namespace Immutype.Core
             {
                 if (parameter == currentParameter)
                 {
-                    yield return SyntaxFactory.Argument(
-                        CreateExpression(
-                            enumerableMethod,
-                            _syntaxNodeFactory.CreateTransientArgumentExpression(owner, thisParameter, currentParameter),
-                            currentParameter.Type,
-                            arrayParameter));
+                    var thisArg = _syntaxNodeFactory.CreateTransientArgumentExpression(owner, thisParameter, currentParameter);
+
+                    var expression = CreateExpression(
+                        enumerableMethod,
+                        thisArg,
+                        currentParameter.Type,
+                        arrayParameter);
+                    
+                    yield return SyntaxFactory.Argument(expression);
                 }
                 else
                 {
@@ -82,16 +84,19 @@ namespace Immutype.Core
             }
         }
 
-        private ExpressionSyntax CreateExpression(string enumerableMethod, ExpressionSyntax? thisExpression, TypeSyntax? currentParameterType, ParameterSyntax arrayParameter)
+        private ExpressionSyntax CreateExpression(string enumerableMethod, ExpressionSyntax? thisExpression, TypeSyntax? currentParameterType, ParameterSyntax arrayParameter, bool addCheck = true)
         {
             ExpressionSyntax? result = default;
             if (thisExpression != default)
             {
-                var defaultExpression = CreateExpression(enumerableMethod, default, currentParameterType, arrayParameter);
-                thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ConditionalExpression(
-                    SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, thisExpression, SyntaxFactory.DefaultExpression(currentParameterType!)),
-                    defaultExpression,
-                    thisExpression));
+                if (addCheck)
+                {
+                    var defaultExpression = CreateExpression(enumerableMethod, default, currentParameterType, arrayParameter);
+                    thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ConditionalExpression(
+                        SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, thisExpression, SyntaxFactory.DefaultExpression(currentParameterType!)),
+                        defaultExpression,
+                        thisExpression));
+                }
 
                 result = SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
@@ -104,18 +109,8 @@ namespace Immutype.Core
             switch (_syntaxNodeFactory.GetUnqualified(currentParameterType))
             {
                 case NullableTypeSyntax nullableTypeSyntax:
-                    var defaultExpression = CreateExpression(enumerableMethod, default, nullableTypeSyntax.ElementType, arrayParameter);
-                    if (thisExpression != default)
-                    {
-                        thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression, thisExpression!, defaultExpression));
-                    }
-                    else
-                    {
-                        thisExpression = SyntaxFactory.DefaultExpression(nullableTypeSyntax.ElementType);
-                    }
-
                     // ReSharper disable once TailRecursiveCall
-                    return CreateExpression(enumerableMethod, thisExpression, nullableTypeSyntax.ElementType, arrayParameter);
+                    return CreateExpression(enumerableMethod, thisExpression, nullableTypeSyntax.ElementType, arrayParameter, false);
 
                 case GenericNameSyntax genericNameSyntax:
                     if (_dataContainerFactory.TryCreate(genericNameSyntax, ref result, ref arrayParameter))

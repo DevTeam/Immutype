@@ -366,7 +366,7 @@ namespace Immutype.Tests.Integration
         }
         
         [Fact]
-        public void ShouldCreateStructWithSingleValueWhenCS71()
+        public void ShouldCreateStructWithSingleValueWhenCs71()
         {
             // Given
             const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
@@ -388,27 +388,7 @@ namespace Immutype.Tests.Integration
             // Then
             output.ShouldBe(new [] { "Sample.Rec" }, generatedCode);
         }
-        
-        [Fact]
-        public void ShouldCreateRecordStructWithSingleValue()
-        {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
-            // When
-            var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public record struct Rec(int Val);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Rec { Val = 99 }" }, generatedCode);
-        }
-        
         [Fact]
         public void ShouldCreateClassWithSingleValue()
         {
