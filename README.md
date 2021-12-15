@@ -93,6 +93,7 @@ _Immutype_ supports [IIncrementalGenerator](https://docs.microsoft.com/en-us/dot
   - [Applying defaults](#applying-defaults)
   - [Immutable collection](#immutable-collection)
   - [Removing](#removing)
+  - [Generic types](#generic-types)
   - [Nullable collection](#nullable-collection)
   - [Set](#set)
   - [Record with constructor](#record-with-constructor)
@@ -253,6 +254,33 @@ public class Removing
         john = john.RemoveFriends(new Person("James"));
         
         john.Friends.Length.ShouldBe(1);
+    }
+}
+```
+
+
+
+### Generic types
+
+It is possible to use generic types including any generic constraints.
+
+``` CSharp
+[Immutype.Target]
+internal record Person<TAge>(string Name, TAge Age = default, IEnumerable<Person<TAge>>? Friends = default) 
+    where TAge : struct;
+
+public class GenericTypes
+{ 
+    public void Run()
+    {
+        var john = new Person<int>("John")
+            .WithAge(15)
+            .WithFriends(new Person<int>("David").WithAge(16))
+            .AddFriends(
+                new Person<int>("James"),
+                new Person<int>("Daniel").WithAge(17));
+        
+        john.Friends?.Count().ShouldBe(3);
     }
 }
 ```

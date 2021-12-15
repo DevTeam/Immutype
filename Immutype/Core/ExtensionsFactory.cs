@@ -21,7 +21,9 @@ namespace Immutype.Core
         public IEnumerable<Source> Create(ParseOptions parseOptions, TypeDeclarationSyntax typeDeclarationSyntax, IReadOnlyList<ParameterSyntax> parameters, CancellationToken cancellationToken)
         {
             var ns = typeDeclarationSyntax.Ancestors().OfType<NamespaceDeclarationSyntax>().Reverse().ToArray();
-            var typeName = string.Join(".", ns.Select(i => i.Name.ToString()).Concat(new []{typeDeclarationSyntax.Identifier.Text}));
+            var typeName = 
+                string.Join(".", ns.Select(i => i.Name.ToString())
+                    .Concat(new []{typeDeclarationSyntax.Identifier.Text + typeDeclarationSyntax.TypeParameterList}));
             var typeSyntax = SyntaxFactory.ParseName(typeName);
             var className = $"{typeDeclarationSyntax.Identifier.Text}Extensions";
             var extensionsClass = SyntaxFactory.ClassDeclaration(className)

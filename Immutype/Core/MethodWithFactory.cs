@@ -43,8 +43,9 @@ namespace Immutype.Core
             }
 
             var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
-            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}")
+            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
                 .AddParameterListParameters(thisParameter, newArgumentParameter)
+                .WithConstraintClauses(targetDeclaration.ConstraintClauses)
                 .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
                 .AddBodyStatements(_syntaxNodeFactory.CreateGuards(newArgumentParameter).ToArray())
                 .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments));
@@ -52,8 +53,9 @@ namespace Immutype.Core
             if (argumentParameter != newArgumentParameter && argumentParameter.Type is not ArrayTypeSyntax)
             {
                 var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(SyntaxFactory.IdentifierName(currentParameter.Identifier)) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
-                yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}")
+                yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
                     .AddParameterListParameters(thisParameter, argumentParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
                     .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateGuards(argumentParameter).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
@@ -62,8 +64,9 @@ namespace Immutype.Core
             if (currentParameter.Default != default && argumentParameter == newArgumentParameter)
             {
                 var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(currentParameter.Default.Value) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
-                yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"WithDefault{name}")
+                yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"WithDefault{name}" + targetDeclaration.TypeParameterList)
                     .AddParameterListParameters(thisParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
                     .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
             }
