@@ -28,26 +28,24 @@ namespace Immutype.Core
             _syntaxNodeFactory = syntaxNodeFactory;
         }
 
-        public IEnumerable<Source> Build(ParseOptions parseOptions, IEnumerable<SyntaxTree> trees, CancellationToken cancellationToken) =>
-            from syntaxTree in trees
-            where !cancellationToken.IsCancellationRequested
-            from typeDeclarationSyntax in syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>()
-            where !cancellationToken.IsCancellationRequested
+        public IEnumerable<Source> Build(GenerationContext<SyntaxNode> context) =>
+            from typeDeclarationSyntax in context.Syntax.DescendantNodes().OfType<TypeDeclarationSyntax>()
+            where !context.CancellationToken.IsCancellationRequested
             where _typeSyntaxFilter.IsAccepted(typeDeclarationSyntax)
-            from source in Build(parseOptions, typeDeclarationSyntax, cancellationToken)
+            from source in Build(new GenerationContext<TypeDeclarationSyntax>(context.Options, context.Compilation, context.SemanticModel, typeDeclarationSyntax, context.CancellationToken))
             select source;
         
-        public IEnumerable<Source> Build(ParseOptions parseOptions, TypeDeclarationSyntax typeDeclarationSyntax, CancellationToken cancellationToken)
+        public IEnumerable<Source> Build(GenerationContext<TypeDeclarationSyntax> context)
         {
             IReadOnlyList<ParameterSyntax>? parameters = default;
-            if (typeDeclarationSyntax is RecordDeclarationSyntax recordDeclarationSyntax && recordDeclarationSyntax.ParameterList?.Parameters.Count != 0)
+            if (context.Syntax is RecordDeclarationSyntax recordDeclarationSyntax && recordDeclarationSyntax.ParameterList?.Parameters.Count != 0)
             {
                 parameters = recordDeclarationSyntax.ParameterList?.Parameters;
             }
 
             parameters ??= (
-                    from ctor in typeDeclarationSyntax.Members.OfType<ConstructorDeclarationSyntax>()
-                    where !cancellationToken.IsCancellationRequested
+                    from ctor in context.Syntax.Members.OfType<ConstructorDeclarationSyntax>()
+                    where !context.CancellationToken.IsCancellationRequested
                     where ctor.ParameterList.Parameters.Count > 0 && ctor.Modifiers.Any(i => i.IsKind(SyntaxKind.PublicKeyword) || i.IsKind(SyntaxKind.InternalKeyword)) || !ctor.Modifiers.Any()
                     let weight = ctor.ParameterList.Parameters.Count + (_syntaxNodeFactory.HasTargetAttribute(ctor) ? 0xffff : 0)
                     orderby weight descending
@@ -57,7 +55,7 @@ namespace Immutype.Core
                 .Parameters;
             
             return parameters != default
-                ? _unitFactory.Create(parseOptions, typeDeclarationSyntax, parameters, cancellationToken)
+                ? _unitFactory.Create(context, parameters)
                 : Enumerable.Empty<Source>();
         }
     }

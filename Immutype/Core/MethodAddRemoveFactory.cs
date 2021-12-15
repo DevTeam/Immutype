@@ -21,7 +21,7 @@ namespace Immutype.Core
             _dataContainerFactory = dataContainerFactory;
         }
 
-        public IEnumerable<MethodDeclarationSyntax> Create(TypeDeclarationSyntax targetDeclaration, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
+        public IEnumerable<MethodDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
         {
             if (currentParameter.Type == default)
             {
@@ -39,18 +39,19 @@ namespace Immutype.Core
 
             var curParameters = parameters as ParameterSyntax[] ?? parameters.ToArray();
             var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
+            var targetDeclaration = context.Syntax;
             yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{name}" + targetDeclaration.TypeParameterList)
                 .AddParameterListParameters(thisParameter, arrayParameter)
                 .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(arrayParameter).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
                 .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, CreateArguments(nameof(Enumerable.Concat), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter)));
             
             yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Remove{name}" + targetDeclaration.TypeParameterList)
                 .AddParameterListParameters(thisParameter, arrayParameter)
                 .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(arrayParameter).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
                 .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, CreateArguments(nameof(Enumerable.Except), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter)));
         }
 

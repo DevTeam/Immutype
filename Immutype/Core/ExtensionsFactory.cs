@@ -5,7 +5,6 @@ namespace Immutype.Core
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using System.Threading;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,8 +17,9 @@ namespace Immutype.Core
         public ExtensionsFactory(IMethodsFactory methodsFactory) =>
             _methodsFactory = methodsFactory;
 
-        public IEnumerable<Source> Create(ParseOptions parseOptions, TypeDeclarationSyntax typeDeclarationSyntax, IReadOnlyList<ParameterSyntax> parameters, CancellationToken cancellationToken)
+        public IEnumerable<Source> Create(GenerationContext<TypeDeclarationSyntax> context, IReadOnlyList<ParameterSyntax> parameters)
         {
+            var typeDeclarationSyntax = context.Syntax;
             var ns = typeDeclarationSyntax.Ancestors().OfType<NamespaceDeclarationSyntax>().Reverse().ToArray();
             var typeName = 
                 string.Join(".", ns.Select(i => i.Name.ToString())
@@ -29,7 +29,7 @@ namespace Immutype.Core
             var extensionsClass = SyntaxFactory.ClassDeclaration(className)
                 .AddModifiers(typeDeclarationSyntax.Modifiers.Where(i => !i.IsKind(SyntaxKind.ReadOnlyKeyword) && !i.IsKind(SyntaxKind.PartialKeyword)).ToArray())
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword))
-                .AddMembers(_methodsFactory.Create(parseOptions, typeDeclarationSyntax, typeSyntax, parameters, cancellationToken).ToArray());
+                .AddMembers(_methodsFactory.Create(context, typeSyntax, parameters).ToArray());
 
             var usingDirectives = typeDeclarationSyntax.SyntaxTree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>()
                 .Concat(new []

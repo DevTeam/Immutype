@@ -28,14 +28,13 @@ The extensions methods above are generating automatically for each ```public``` 
 
 _Immutype_ supports nullable [reference](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) and [value](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types) types and the following list of enumerable types:
 
-- Arrays like ```T []```
+- Arrays
 - ```IEnumerable<T>```
 - ```List<T>```
-- ```List<T>```
+- ```IList<T>```
 - ```IReadOnlyCollection<T>```
 - ```IReadOnlyList<T>```
 - ```ICollection<T>```
-- ```IList<T>```
 - ```HashSet<T>```
 - ```ISet<T>```
 - ```Queue<T>```
@@ -51,7 +50,7 @@ _Immutype_ supports nullable [reference](https://docs.microsoft.com/en-us/dotnet
 - ```ImmutableStack<T>```
 - ```IImmutableStack<T>```
 
-_Immutype_ supports [IIncrementalGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.iincrementalgenerator) as well as [ISourceGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.isourcegenerator) and does not use semantic model, so it works quite effective.
+_Immutype_ supports [IIncrementalGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.iincrementalgenerator) as well as [ISourceGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.isourcegenerator) so it works quite effective.
 
 ## NuGet package
 
@@ -156,7 +155,7 @@ public class Array
     {
         var john = new Person("John")
             .WithAge(15)
-            .WithFriends(new Person("David").WithAge(16))
+            .AddFriends(new Person("David").WithAge(16))
             .AddFriends(
                 new Person("James"),
                 new Person("Daniel").WithAge(17));
@@ -303,7 +302,7 @@ public class NullableCollection
     public void Run()
     {
         var john = new Person("John",15)
-            .WithFriends(
+            .AddFriends(
                 new Person("David").WithAge(16),
                 new Person("James").WithAge(17)
                     .WithFriends(new Person("Tyler").WithAge(16)));

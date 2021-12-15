@@ -70,7 +70,7 @@ public class Array
     {
         var john = new Person("John")
             .WithAge(15)
-            .WithFriends(new Person("David").WithAge(16))
+            .AddFriends(new Person("David").WithAge(16))
             .AddFriends(
                 new Person("James"),
                 new Person("Daniel").WithAge(17));
@@ -217,7 +217,7 @@ public class NullableCollection
     public void Run()
     {
         var john = new Person("John",15)
-            .WithFriends(
+            .AddFriends(
                 new Person("David").WithAge(16),
                 new Person("James").WithAge(17)
                     .WithFriends(new Person("Tyler").WithAge(16)));

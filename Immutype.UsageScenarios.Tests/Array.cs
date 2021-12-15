@@ -25,7 +25,7 @@ namespace Immutype.UsageScenarios.Tests.Array
         {
             var john = new Person("John")
                 .WithAge(15)
-                .WithFriends(new Person("David").WithAge(16))
+                .AddFriends(new Person("David").WithAge(16))
                 .AddFriends(
                     new Person("James"),
                     new Person("Daniel").WithAge(17));

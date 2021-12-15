@@ -1,8 +1,9 @@
 ﻿#if ROSLYN38
 namespace Immutype
 {
+    using Core;
     using Microsoft.CodeAnalysis;
-    
+
     [Generator]
     public class SourceGenerator: ISourceGenerator
     {
@@ -19,10 +20,16 @@ namespace Immutype
             {
                 context.AddSource(source.HintName, source.Code);
             }
-            
-            foreach (var source in Composer.ResolveISourceBuilder().Build(context.ParseOptions, context.Compilation.SyntaxTrees, context.CancellationToken))
+
+            var sourceBuilder = Composer.ResolveISourceBuilder();
+            foreach (var tree in context.Compilation.SyntaxTrees)
             {
-                context.AddSource(source.HintName, source.Code);
+                var semanticModel = context.Compilation.GetSemanticModel(tree);
+                var generationContext = new GenerationContext<SyntaxNode>(context.ParseOptions, context.Compilation, semanticModel, tree.GetRoot(), context.CancellationToken);
+                foreach (var source in sourceBuilder.Build(generationContext))
+                {
+                    context.AddSource(source.HintName, source.Code);
+                }
             }
         }
     }

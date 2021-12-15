@@ -4,8 +4,6 @@ namespace Immutype.Core
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
-    using System.Threading;
-    using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -20,14 +18,14 @@ namespace Immutype.Core
             _syntaxNodeFactory = syntaxNodeFactory;
         }
 
-        public IEnumerable<MemberDeclarationSyntax> Create(ParseOptions parseOptions, TypeDeclarationSyntax targetDeclaration, TypeSyntax targetType, IReadOnlyList<ParameterSyntax> parameters, CancellationToken cancellationToken)
+        public IEnumerable<MemberDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IReadOnlyList<ParameterSyntax> parameters)
         {
             var thisParameter = 
                 SyntaxFactory.Parameter(SyntaxFactory.Identifier("it"))
                 .WithType(targetType)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
 
-            if (parseOptions is CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp7_2 } && _syntaxNodeFactory.IsValueType(targetDeclaration))
+            if (context.Options is CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp7_2 } && _syntaxNodeFactory.IsValueType(context.Syntax))
             {
                 thisParameter = thisParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.InKeyword));
             }
@@ -37,8 +35,8 @@ namespace Immutype.Core
                 let parameterType = currentParameter.Type
                 where parameterType != default
                 from methodFactory in _methodFactories
-                from method in methodFactory.Create(targetDeclaration, targetType, parameters, currentParameter, thisParameter)
-                where !cancellationToken.IsCancellationRequested
+                from method in methodFactory.Create(context, targetType, parameters, currentParameter, thisParameter)
+                where !context.CancellationToken.IsCancellationRequested
                 select method;
         }
     }

@@ -1,6 +1,7 @@
 ﻿#if ROSLYN40
 namespace Immutype
 {
+    using Core;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -21,15 +22,19 @@ namespace Immutype
             var typeSyntaxFilter = Composer.ResolveITypeSyntaxFilter();
             var changes = context.SyntaxProvider.CreateSyntaxProvider(
                 (node, _) => node is TypeDeclarationSyntax typeDeclarationSyntax && typeSyntaxFilter.IsAccepted(typeDeclarationSyntax),
-                (syntaxContext, _) => (TypeDeclarationSyntax)syntaxContext.Node)
+                (syntaxContext, _) => syntaxContext)
                 .Combine(context.ParseOptionsProvider)
+                .Combine(context.CompilationProvider)
                 .Collect();
 
             context.RegisterSourceOutput(changes, (ctx, changes) =>
             {
-                foreach (var (typeDeclarationSyntax, options) in changes)
+                // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+                // ReSharper disable once UseDeconstruction
+                foreach (var change in changes)
                 {
-                    foreach (var source in sourceBuilder.Build(options, typeDeclarationSyntax, ctx.CancellationToken))
+                    var generationContext = new GenerationContext<TypeDeclarationSyntax>(change.Left.Right, change.Right, change.Left.Left.SemanticModel, (TypeDeclarationSyntax)change.Left.Left.Node, ctx.CancellationToken);
+                    foreach (var source in sourceBuilder.Build(generationContext))
                     {
                         ctx.AddSource(source.HintName, source.Code);
                     }

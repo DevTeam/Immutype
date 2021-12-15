@@ -24,11 +24,12 @@ namespace Immutype.Core
             _dataContainerFactory = dataContainerFactory;
         }
 
-        public IEnumerable<MethodDeclarationSyntax> Create(TypeDeclarationSyntax targetDeclaration, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
+        public IEnumerable<MethodDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
         {
             var curParameters = parameters.ToArray();
             var argumentParameter = currentParameter.WithDefault(default);
             var newArgumentParameter = argumentParameter;
+            var targetDeclaration = context.Syntax;
             var arguments = new List<ArgumentSyntax>();
             foreach (var parameter in curParameters)
             {
@@ -46,8 +47,8 @@ namespace Immutype.Core
             yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
                 .AddParameterListParameters(thisParameter, newArgumentParameter)
                 .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(newArgumentParameter).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, newArgumentParameter, false).ToArray())
                 .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments));
 
             if (argumentParameter != newArgumentParameter && argumentParameter.Type is not ArrayTypeSyntax)
@@ -56,8 +57,8 @@ namespace Immutype.Core
                 yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
                     .AddParameterListParameters(thisParameter, argumentParameter)
                     .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(argumentParameter).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, argumentParameter, false).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
             }
 
@@ -67,7 +68,7 @@ namespace Immutype.Core
                 yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"WithDefault{name}" + targetDeclaration.TypeParameterList)
                     .AddParameterListParameters(thisParameter)
                     .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(thisParameter).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
             }
         }

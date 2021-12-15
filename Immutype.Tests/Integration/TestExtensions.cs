@@ -56,9 +56,15 @@ namespace Immutype.Tests.Integration
 
             var generatedSources = new List<Source>();
             generatedSources.AddRange(Composer.ResolveIComponentsBuilder().Build(CancellationToken.None));
-            generatedSources.AddRange(Composer.ResolveISourceBuilder().Build(parseOptions, compilation.SyntaxTrees, CancellationToken.None));
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree);
+                var root = tree.GetRoot();
+                var context = new GenerationContext<SyntaxNode>(parseOptions, compilation, semanticModel, root, CancellationToken.None);
+                generatedSources.AddRange(Composer.ResolveISourceBuilder().Build(context));
+            }
+
             generatedCode = string.Join(Environment.NewLine, generatedSources.Select((src, index) => $"Generated {index + 1}" + Environment.NewLine + Environment.NewLine + src.Code));
-            
             compilation = compilation
                 .WithOptions(
                     new CSharpCompilationOptions(OutputKind.ConsoleApplication)

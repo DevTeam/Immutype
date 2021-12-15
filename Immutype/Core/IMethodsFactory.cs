@@ -7,6 +7,6 @@ namespace Immutype.Core
 
     internal interface IMethodsFactory
     {
-        IEnumerable<MemberDeclarationSyntax> Create(ParseOptions parseOptions, TypeDeclarationSyntax targetDeclaration, TypeSyntax targetType, IReadOnlyList<ParameterSyntax> parameters, CancellationToken cancellationToken);
+        IEnumerable<MemberDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IReadOnlyList<ParameterSyntax> parameters);
     }
 }

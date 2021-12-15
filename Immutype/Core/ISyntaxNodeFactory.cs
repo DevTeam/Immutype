@@ -22,6 +22,6 @@ namespace Immutype.Core
         
         MemberAccessExpressionSyntax CreateTransientArgumentExpression(TypeDeclarationSyntax owner, ParameterSyntax thisParameter, ParameterSyntax parameter);
 
-        IEnumerable<StatementSyntax> CreateGuards(ParameterSyntax parameter);
+        IEnumerable<StatementSyntax> CreateGuards(GenerationContext<TypeDeclarationSyntax> context, ParameterSyntax parameter, bool force);
     }
 }
