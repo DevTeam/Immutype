@@ -51,6 +51,26 @@ namespace Immutype.Tests.Integration
         }
         
         [Fact]
+        public void ShouldCreateRecordStructWithSingleValue()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                
+                [Immutype.TargetAttribute()]
+                public record struct Rec(int val);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);
+        }
+        
+        [Fact]
         public void ShouldCreateRecordWithCtor()
         {
             // Given
