@@ -27,7 +27,11 @@ namespace Immutype.Core
             typeDeclarationSyntax switch
             {
                 StructDeclarationSyntax => true,
-                RecordDeclarationSyntax => typeDeclarationSyntax.Modifiers.Any(i => i.IsKind(SyntaxKind.StructKeyword)),
+#if ROSLYN38
+                RecordDeclarationSyntax => false,
+#else
+                RecordDeclarationSyntax => typeDeclarationSyntax.IsKind(SyntaxKind.RecordStructDeclaration),
+#endif
                 ClassDeclarationSyntax => false,
                 _ => false
             };

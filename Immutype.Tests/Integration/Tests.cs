@@ -4,7 +4,6 @@ using Xunit;
 
 namespace Immutype.Tests.Integration
 {
-    using System.Security.Cryptography.X509Certificates;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
 
@@ -50,6 +49,28 @@ namespace Immutype.Tests.Integration
             output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);
         }
         
+#if !ROSLYN38
+        [Fact]
+        public void ShouldCreateRecordStructWithSingleValue()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+                
+                [Immutype.TargetAttribute()]
+                public record struct Rec(int val);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);
+        }
+#endif
+
         [Fact]
         public void ShouldCreateRecordWithCtor()
         {

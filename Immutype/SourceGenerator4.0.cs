@@ -1,4 +1,4 @@
-﻿#if ROSLYN40
+﻿#if !ROSLYN38
 namespace Immutype
 {
     using Core;
