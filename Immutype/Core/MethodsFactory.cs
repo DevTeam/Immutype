@@ -25,7 +25,9 @@ namespace Immutype.Core
                 .WithType(targetType)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
 
-            if (context.Options is CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp7_2 } && _syntaxNodeFactory.IsValueType(context.Syntax))
+            if (
+                context.Options is CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp7_2 }
+                && _syntaxNodeFactory.IsReadonlyType(context.Syntax))
             {
                 thisParameter = thisParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.InKeyword));
             }

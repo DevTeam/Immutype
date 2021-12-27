@@ -7,7 +7,7 @@ namespace Immutype.Benchmark
     public record PersonRecordWithOneProperty(string? Name);
     
     [Immutype.Target]
-    public record struct PersonRecordStructWithOneProperty(string? Name);
+    public readonly record struct PersonRecordStructWithOneProperty(string? Name);
     
     [MemoryDiagnoser]
     [Orderer(SummaryOrderPolicy.FastestToSlowest)]

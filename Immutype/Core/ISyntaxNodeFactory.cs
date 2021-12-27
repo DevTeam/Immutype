@@ -7,6 +7,8 @@ namespace Immutype.Core
     internal interface ISyntaxNodeFactory
     {
         bool IsValueType(TypeDeclarationSyntax typeDeclarationSyntax);
+        
+        bool IsReadonlyType(TypeDeclarationSyntax typeDeclarationSyntax);
 
         bool HasTargetAttribute(MemberDeclarationSyntax memberDeclarationSyntax);
             

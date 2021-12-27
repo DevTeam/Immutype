@@ -14,7 +14,7 @@ namespace Immutype.UsageScenarios.Tests.Array
     // $description=Array
     // {
     [Immutype.Target]
-    internal record Person(string Name, int Age = 0, params Person[] Friends);
+    internal readonly record struct Person(string Name, int Age = 0, params Person[] Friends);
 
     public class Array
     { 

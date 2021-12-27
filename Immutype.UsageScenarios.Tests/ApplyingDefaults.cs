@@ -14,7 +14,7 @@ namespace Immutype.UsageScenarios.Tests.ApplyingDefaults
     // $description=Applying defaults
     // {
     [Immutype.Target]
-    internal record Person(string Name = "John", int Age = 17);
+    internal readonly record struct Person(string Name = "John", int Age = 17);
     
     public class ApplyingDefaults
     {

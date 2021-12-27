@@ -14,7 +14,7 @@ namespace Immutype.UsageScenarios.Tests.Removing
     // $description=Removing
     // {
     [Immutype.Target]
-    internal record Person(
+    internal readonly record struct Person(
         string Name,
         int Age = 0,
         params Person[] Friends);

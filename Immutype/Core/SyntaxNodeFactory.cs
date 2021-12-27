@@ -36,6 +36,9 @@ namespace Immutype.Core
                 _ => false
             };
         
+        public bool IsReadonlyType(TypeDeclarationSyntax typeDeclarationSyntax) =>
+            typeDeclarationSyntax.Modifiers.Any(i => i.IsKind(SyntaxKind.ReadOnlyKeyword));
+
         public bool HasTargetAttribute(MemberDeclarationSyntax memberDeclarationSyntax) =>
             memberDeclarationSyntax.AttributeLists
                 .SelectMany(i => i.Attributes)

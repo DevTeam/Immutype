@@ -7,7 +7,7 @@ namespace Immutype.Benchmark
     public record PersonRecordWithFourProperties(string? Name, int Age, string? LastName, bool HasPassport);
     
     [Immutype.Target]
-    public record struct PersonRecordStructWithFourProperties(string? Name, int Age, string? LastName, bool HasPassport);
+    public readonly record struct PersonRecordStructWithFourProperties(string? Name, int Age, string? LastName, bool HasPassport);
     
     [MemoryDiagnoser]
     [Orderer(SummaryOrderPolicy.FastestToSlowest)]

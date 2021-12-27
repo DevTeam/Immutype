@@ -7,7 +7,7 @@ namespace Immutype.Benchmark
     public record PersonRecordWithTwoProperties(string? Name, int Age);
     
     [Immutype.Target]
-    public record struct PersonRecordStructWithTwoProperties(string? Name, int Age);
+    public readonly record struct PersonRecordStructWithTwoProperties(string? Name, int Age);
     
     [MemoryDiagnoser]
     [Orderer(SummaryOrderPolicy.FastestToSlowest)]
