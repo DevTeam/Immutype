@@ -17,8 +17,8 @@
         <!--<AnalyzerRoslynVersion Condition="'$(AnalyzerRoslynVersion)'==''">3.8</AnalyzerRoslynVersion>
         <AnalyzerRoslynPackageVersion Condition="'$(AnalyzerRoslynPackageVersion)'==''">3.8.0</AnalyzerRoslynPackageVersion>-->
 
-        <DefineConstants Condition="'$(AnalyzerRoslynVersion)'=='4.0'">ROSLYN40</DefineConstants>
-        <DefineConstants Condition="'$(AnalyzerRoslynVersion)'=='3.8'">ROSLYN38</DefineConstants>
+        <DefineConstants Condition="'$(AnalyzerRoslynVersion)'=='4.0'">$(DefineConstants);ROSLYN40</DefineConstants>
+        <DefineConstants Condition="'$(AnalyzerRoslynVersion)'=='3.8'">$(DefineConstants);ROSLYN38</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>

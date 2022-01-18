@@ -62,9 +62,27 @@ namespace Immutype.Tests.Integration
             {
                 using System;
                 
-                [Immutype.TargetAttribute()]
+                [Immutype.Target]
                 public record struct Rec(int val);
             }".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportBlockFreeNamespace()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+            // When
+            var output = @"
+            namespace Sample;
+            using System;
+            [Immutype.Target]
+            public record struct Rec(int val);
+            ".Run(out var generatedCode, new RunOptions { Statements = statements });
 
             // Then
             output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);

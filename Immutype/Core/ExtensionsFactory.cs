@@ -20,7 +20,15 @@ namespace Immutype.Core
         public IEnumerable<Source> Create(GenerationContext<TypeDeclarationSyntax> context, IReadOnlyList<ParameterSyntax> parameters)
         {
             var typeDeclarationSyntax = context.Syntax;
-            var ns = typeDeclarationSyntax.Ancestors().OfType<NamespaceDeclarationSyntax>().Reverse().ToArray();
+            var ns = typeDeclarationSyntax.Ancestors()
+#if ROSLYN38
+                .OfType<NamespaceDeclarationSyntax>()
+#else
+                .OfType<BaseNamespaceDeclarationSyntax>()
+#endif
+                .Reverse()
+                .ToArray();
+
             var typeName = 
                 string.Join(".", ns.Select(i => i.Name.ToString())
                     .Concat(new []{typeDeclarationSyntax.Identifier.Text + typeDeclarationSyntax.TypeParameterList}));
