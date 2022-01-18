@@ -1,7 +1,8 @@
 ﻿#if !ROSLYN38
 namespace Immutype
 {
-    using Core;
+    using System.Diagnostics;
+     using Core;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -10,14 +11,22 @@ namespace Immutype
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterPostInitializationOutput(ctx =>
+            /*if (!Debugger.IsAttached)
             {
-                foreach (var source in Composer.ResolveIComponentsBuilder().Build(ctx.CancellationToken))
+                Debugger.Launch();
+            }*/
+
+            context.RegisterSourceOutput(context.AnalyzerConfigOptionsProvider, (ctx, options) =>
+            {
+                if (!(options.GlobalOptions.TryGetValue("build_property.ImmutypeAPI", out var valueStr) && bool.TryParse(valueStr, out var value) && value == false))
                 {
-                    ctx.AddSource(source.HintName, source.Code);
+                    foreach (var source in Composer.ResolveIComponentsBuilder().Build(ctx.CancellationToken))
+                    {
+                        ctx.AddSource(source.HintName, source.Code);
+                    }
                 }
             });
-            
+
             var sourceBuilder = Composer.ResolveISourceBuilder();
             var typeSyntaxFilter = Composer.ResolveITypeSyntaxFilter();
             var changes = context.SyntaxProvider.CreateSyntaxProvider(

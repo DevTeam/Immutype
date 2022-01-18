@@ -6,6 +6,7 @@
         <AssemblyOriginatorKeyFile>..\DevTeam.snk</AssemblyOriginatorKeyFile>
         <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
         <OutputPath>bin/$(Configuration)/roslyn$(AnalyzerRoslynVersion)</OutputPath>
+        <IsRoslynComponent>true</IsRoslynComponent>
     </PropertyGroup>
 
     <PropertyGroup>

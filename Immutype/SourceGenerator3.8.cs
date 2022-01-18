@@ -1,6 +1,7 @@
 ﻿#if ROSLYN38
 namespace Immutype
 {
+    using System.Diagnostics;
     using Core;
     using Microsoft.CodeAnalysis;
 
@@ -16,9 +17,12 @@ namespace Immutype
                 Debugger.Launch();
             }*/
 
-            foreach (var source in Composer.ResolveIComponentsBuilder().Build(context.CancellationToken))
+            if (!(context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.ImmutypeAPI", out var valueStr) && bool.TryParse(valueStr, out var value) && value == false))
             {
-                context.AddSource(source.HintName, source.Code);
+                foreach (var source in Composer.ResolveIComponentsBuilder().Build(context.CancellationToken))
+                {
+                    context.AddSource(source.HintName, source.Code);
+                }
             }
 
             var sourceBuilder = Composer.ResolveISourceBuilder();

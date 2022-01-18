@@ -48,6 +48,31 @@ namespace Immutype.Tests.Integration
             // Then
             output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);
         }
+
+        [Fact]
+        public void ShouldCreateRecordWithSingleGenericValue()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(new Rec(new GenericValue<int>()).WithVal(new GenericValue<int>()));";
+
+            // When
+            var output = @"
+            namespace Sample
+            {
+                using System;
+
+                public class GenericValue<T>
+                {
+                    public override string ToString() => typeof(T).Name;
+                }
+                
+                [Immutype.TargetAttribute()]
+                public record Rec(GenericValue<int> val);
+            }".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "Rec { val = Int32 }" }, generatedCode);
+        }
         
 #if !ROSLYN38
         [Fact]

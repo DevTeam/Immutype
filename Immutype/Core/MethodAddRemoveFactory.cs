@@ -1,5 +1,6 @@
 namespace Immutype.Core
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.CodeAnalysis.CSharp;
@@ -40,19 +41,27 @@ namespace Immutype.Core
             var curParameters = parameters as ParameterSyntax[] ?? parameters.ToArray();
             var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
             var targetDeclaration = context.Syntax;
-            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{name}" + targetDeclaration.TypeParameterList)
-                .AddParameterListParameters(thisParameter, arrayParameter)
-                .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, CreateArguments(nameof(Enumerable.Concat), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter)));
-            
-            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Remove{name}" + targetDeclaration.TypeParameterList)
-                .AddParameterListParameters(thisParameter, arrayParameter)
-                .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, CreateArguments(nameof(Enumerable.Except), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter)));
+            var addArgs = CreateArguments(nameof(Enumerable.Concat), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter);
+            if (addArgs.Any())
+            {
+                yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{name}" + targetDeclaration.TypeParameterList)
+                    .AddParameterListParameters(thisParameter, arrayParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, addArgs));
+            }
+
+            var removeArgs = CreateArguments(nameof(Enumerable.Except), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter);
+            if (removeArgs.Any())
+            {
+                yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Remove{name}" + targetDeclaration.TypeParameterList)
+                    .AddParameterListParameters(thisParameter, arrayParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, removeArgs));
+            }
         }
 
         private TypeSyntax? GetElementType(TypeSyntax typeSyntax) =>
@@ -64,37 +73,50 @@ namespace Immutype.Core
                 _ => default
             };
         
-        private IEnumerable<ArgumentSyntax> CreateArguments(string enumerableMethod, TypeDeclarationSyntax owner, ParameterSyntax thisParameter, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax arrayParameter)
+        private IReadOnlyCollection<ArgumentSyntax> CreateArguments(string enumerableMethod, TypeDeclarationSyntax owner, ParameterSyntax thisParameter, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax arrayParameter)
         {
+            var args = new List<ArgumentSyntax>();
             foreach (var parameter in parameters)
             {
                 if (parameter == currentParameter)
                 {
                     var thisArg = _syntaxNodeFactory.CreateTransientArgumentExpression(owner, thisParameter, currentParameter);
 
-                    var expression = CreateExpression(
+                    var expression = TryCreateExpression(
                         enumerableMethod,
                         thisArg,
                         currentParameter.Type,
                         arrayParameter);
+
+                    if (expression == default)
+                    {
+                        return Array.Empty<ArgumentSyntax>();
+                    }
                     
-                    yield return SyntaxFactory.Argument(expression);
+                    args.Add(SyntaxFactory.Argument(expression));
                 }
                 else
                 {
-                    yield return _syntaxNodeFactory.CreateTransientArgument(owner, thisParameter, parameter);
+                    args.Add(_syntaxNodeFactory.CreateTransientArgument(owner, thisParameter, parameter));
                 }
             }
+
+            return args;
         }
 
-        private ExpressionSyntax CreateExpression(string enumerableMethod, ExpressionSyntax? thisExpression, TypeSyntax? currentParameterType, ParameterSyntax arrayParameter, bool addCheck = true)
+        private ExpressionSyntax? TryCreateExpression(string enumerableMethod, ExpressionSyntax? thisExpression, TypeSyntax? currentParameterType, ParameterSyntax arrayParameter, bool addCheck = true)
         {
             ExpressionSyntax? result = default;
             if (thisExpression != default)
             {
                 if (addCheck)
                 {
-                    var defaultExpression = CreateExpression(enumerableMethod, default, currentParameterType, arrayParameter);
+                    var defaultExpression = TryCreateExpression(enumerableMethod, default, currentParameterType, arrayParameter);
+                    if (defaultExpression == default)
+                    {
+                        return default;
+                    }
+
                     thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ConditionalExpression(
                         SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, thisExpression, SyntaxFactory.DefaultExpression(currentParameterType!)),
                         defaultExpression,
@@ -113,7 +135,7 @@ namespace Immutype.Core
             {
                 case NullableTypeSyntax nullableTypeSyntax:
                     // ReSharper disable once TailRecursiveCall
-                    return CreateExpression(enumerableMethod, thisExpression, nullableTypeSyntax.ElementType, arrayParameter, false);
+                    return TryCreateExpression(enumerableMethod, thisExpression, nullableTypeSyntax.ElementType, arrayParameter, false);
 
                 case GenericNameSyntax genericNameSyntax:
                     if (_dataContainerFactory.TryCreate(genericNameSyntax, ref result, ref arrayParameter))
