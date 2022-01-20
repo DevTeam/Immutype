@@ -1,17 +1,29 @@
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable LoopCanBeConvertedToQuery
+// ReSharper disable IdentifierTypo
 namespace Immutype.Core
 {
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using System.Text;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Text;
+#if ROSLYN38
+    using NamespaceType = Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax;
+#else
+    using NamespaceType = Microsoft.CodeAnalysis.CSharp.Syntax.BaseNamespaceDeclarationSyntax;
+#endif
 
     internal class ExtensionsFactory : IUnitFactory
     {
+        private static readonly UsingDirectiveSyntax[] AdditionalUsings = {
+            SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic")),
+            SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq"))
+        };
+    
         private readonly IMethodsFactory _methodsFactory;
 
         public ExtensionsFactory(IMethodsFactory methodsFactory) =>
@@ -39,40 +51,36 @@ namespace Immutype.Core
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword))
                 .AddMembers(_methodsFactory.Create(context, typeSyntax, parameters).ToArray());
 
-            var usingDirectives = typeDeclarationSyntax.SyntaxTree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>()
-                .Concat(new []
-                {
-                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq"))
-                })
-                .GroupBy(i => i.Name.ToString())
-                .Select(i => i.First())
-                .ToArray();
-            
-            var compilationUnit = SyntaxFactory.CompilationUnit().AddUsings(usingDirectives);
-            NamespaceDeclarationSyntax? prevNamespaceNode = null;
-            foreach (var originalNamespaceNode in ns.Reverse())
-            {
-                var namespaceNode = 
-                    SyntaxFactory.NamespaceDeclaration(originalNamespaceNode.Name)
-                        .AddUsings(originalNamespaceNode.Usings.ToArray());
-
-                prevNamespaceNode = prevNamespaceNode == null ? namespaceNode : prevNamespaceNode.AddMembers(namespaceNode);
-            }
-            
-            if (prevNamespaceNode != null)
-            {
-                prevNamespaceNode = prevNamespaceNode.AddMembers(extensionsClass);
-                compilationUnit = compilationUnit.AddMembers(prevNamespaceNode);
-            }
-            else
-            {
-                compilationUnit = compilationUnit.AddMembers(extensionsClass);
-            }
-
-            var code = compilationUnit.NormalizeWhitespace().ToString();
+            var code = CreateRootNode(typeDeclarationSyntax, AdditionalUsings, extensionsClass).NormalizeWhitespace().ToString();
             var fileName = string.Join(".", ns.Select(i => i.Name.ToString()).Concat(new []{typeDeclarationSyntax.Identifier.Text}));
             yield return new Source(fileName, SourceText.From(code, Encoding.UTF8));
+        }
+
+        private static CompilationUnitSyntax CreateRootNode(SyntaxNode targetNode, UsingDirectiveSyntax[] additionalUsings, params MemberDeclarationSyntax[] members)
+        {
+            var namespaces = targetNode.Ancestors().OfType<NamespaceType>();
+            NamespaceType? rootNamespace = default;
+            foreach (var ns in namespaces)
+            {
+                var nextNs = ns.WithMembers(new SyntaxList<MemberDeclarationSyntax>(Enumerable.Empty<MemberDeclarationSyntax>()));
+                rootNamespace = rootNamespace == default 
+                    ? nextNs.AddMembers(members).AddUsings(GetUsings(nextNs.Usings, additionalUsings))
+                    : nextNs.AddMembers(rootNamespace);
+            }
+            
+            var baseCompilationUnit = targetNode.Ancestors().OfType<CompilationUnitSyntax>().FirstOrDefault();
+            var rootCompilationUnit = (baseCompilationUnit ?? SyntaxFactory.CompilationUnit())
+                .WithMembers(new SyntaxList<MemberDeclarationSyntax>(Enumerable.Empty<MemberDeclarationSyntax>()));
+
+            return rootNamespace != default
+                ? rootCompilationUnit.AddMembers(rootNamespace)
+                : rootCompilationUnit.AddUsings(GetUsings(rootCompilationUnit.Usings, additionalUsings)).AddMembers(members);
+        }
+
+        private static UsingDirectiveSyntax[] GetUsings(IEnumerable<UsingDirectiveSyntax> usings, IEnumerable<UsingDirectiveSyntax> additionalUsings)
+        {
+            var currentUsins = usings.Select(i => i.Name.ToString()).ToImmutableHashSet();
+            return additionalUsings.Where(i => !currentUsins.Contains(i.Name.ToString())).ToArray();
         }
     }
 }

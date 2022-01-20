@@ -1,6 +1,6 @@
-﻿using Shouldly;
+﻿// ReSharper disable StringLiteralTypo
+using Shouldly;
 using Xunit;
-// ReSharper disable StringLiteralTypo
 
 namespace Immutype.Tests.Integration
 {
@@ -228,7 +228,7 @@ namespace Immutype.Tests.Integration
             // Then
             output.ShouldBe(new [] { "33,77,99" }, generatedCode);
         }
-        
+
         [Fact]
         public void ShouldCreateRecordAddSingleIReadOnlyCollection()
         {
@@ -943,6 +943,94 @@ namespace Immutype.Tests.Integration
             
             // Then
             output.ShouldBe(new [] { "55,66,99,44" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportPartialUsing()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2()).WithVal(new Types.Rec2()));";
+
+            // When
+            var output = @"
+            using System.Collections.Generic;
+            namespace Sample
+            {
+                using System;
+                using Types;
+                using System.Collections.Generic;
+
+                [Immutype.TargetAttribute()]
+                public record Rec(Rec2 val);
+            }
+
+            namespace Sample.Types
+            {
+                using System;
+                [Immutype.TargetAttribute()]
+                public record Rec2();
+            }
+            ".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "Rec { val = Rec2 { } }" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportTopLevelUsing()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2(), new System.Text.StringBuilder()).WithVal(new Types.Rec2()));";
+
+            // When
+            var output = @"
+            using System.Text;
+            namespace Sample
+            {
+                
+                using Types;
+                using System.Collections.Generic;
+
+                [Immutype.TargetAttribute()]
+                public record Rec(Rec2 val, StringBuilder stringBuilder);
+            }
+
+            namespace Sample.Types
+            {
+                using System;
+                [Immutype.TargetAttribute()]
+                public record Rec2();
+            }
+            ".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "Rec { val = Rec2 { }, stringBuilder =  }" }, generatedCode);
+        }
+        
+        [Fact]
+        public void ShouldSupportEmptyNamespace()
+        {
+            // Given
+            const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2()).WithVal(new Types.Rec2()));";
+
+            // When
+            var output = @"
+            using System;
+            using Types;
+            using System.Collections.Generic;
+
+            [Immutype.TargetAttribute()]
+            public record Rec(Types.Rec2 val);
+
+            namespace Types
+            {
+                [Immutype.TargetAttribute()]
+                public record Rec2();
+            }
+            ".Run(out var generatedCode, new RunOptions { Statements = statements });
+
+            // Then
+            output.ShouldBe(new [] { "Rec { val = Rec2 { } }" }, generatedCode);
         }
     }
 }
