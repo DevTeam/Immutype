@@ -51,6 +51,8 @@ namespace Immutype.Core
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword))
                 .AddMembers(_methodsFactory.Create(context, typeSyntax, parameters).ToArray());
 
+            extensionsClass = TryAddAttribute(context.SemanticModel, extensionsClass, "System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage");
+
             var code = CreateRootNode(typeDeclarationSyntax, AdditionalUsings, extensionsClass).NormalizeWhitespace().ToString();
             var fileName = string.Join(".", ns.Select(i => i.Name.ToString()).Concat(new []{typeDeclarationSyntax.Identifier.Text}));
             yield return new Source(fileName, SourceText.From(code, Encoding.UTF8));
@@ -81,6 +83,18 @@ namespace Immutype.Core
         {
             var currentUsins = usings.Select(i => i.Name.ToString()).ToImmutableHashSet();
             return additionalUsings.Where(i => !currentUsins.Contains(i.Name.ToString())).ToArray();
+        }
+        
+        private static ClassDeclarationSyntax TryAddAttribute(SemanticModel semanticModel, ClassDeclarationSyntax classDeclarationSyntax, string attributeClassName)
+        {
+            var excludeFromCodeCoverageType = semanticModel.Compilation.GetTypeByMetadataName(attributeClassName + "Attribute");
+            if (excludeFromCodeCoverageType != default)
+            {
+                classDeclarationSyntax = classDeclarationSyntax
+                    .AddAttributeLists(SyntaxFactory.AttributeList().AddAttributes(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(attributeClassName))));
+            }
+
+            return classDeclarationSyntax;
         }
     }
 }

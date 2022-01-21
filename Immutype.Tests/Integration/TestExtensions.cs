@@ -13,6 +13,7 @@ using Xunit;
 namespace Immutype.Tests.Integration
 {
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading;
 
     public static class TestExtensions
