@@ -1,113 +1,149 @@
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable InvertIf
-namespace Immutype.Core
+namespace Immutype.Core;
+
+internal class DataContainerFactory : IDataContainerFactory
 {
-    using System.Collections.Generic;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-    internal class DataContainerFactory : IDataContainerFactory
+    private static readonly Dictionary<string, string> GenericTypeMap = new()
     {
-        private static readonly Dictionary<string, string> GenericTypeMap = new()
         {
-            {"List", "List"},
-            {"IEnumerable", "List"}, 
-            {"IReadOnlyCollection", "List"},
-            {"IReadOnlyList", "List"},
-            {"ICollection", "List"},
-            {"IList", "List"},
-            {"HashSet", "HashSet"},
-            {"ISet", "HashSet"},
-            {"Queue", "Queue"},
-            {"Stack", "Stack"}
-        };
-        
-        private static readonly Dictionary<string, string> ReadonlyTypeMap = new()
+            "List", "List"
+        },
         {
-            {"IReadOnlyCollection", "List"},
-            {"IReadOnlyList", "List"},
-            {"IReadOnlySet", "List"}
-        };
+            "IEnumerable", "List"
+        },
+        {
+            "IReadOnlyCollection", "List"
+        },
+        {
+            "IReadOnlyList", "List"
+        },
+        {
+            "ICollection", "List"
+        },
+        {
+            "IList", "List"
+        },
+        {
+            "HashSet", "HashSet"
+        },
+        {
+            "ISet", "HashSet"
+        },
+        {
+            "Queue", "Queue"
+        },
+        {
+            "Stack", "Stack"
+        }
+    };
 
-        private static readonly Dictionary<string, string> ImmutableTypeMap = new()
+    private static readonly Dictionary<string, string> ReadonlyTypeMap = new()
+    {
         {
-            {"ImmutableList", "ImmutableList"},
-            {"IImmutableList", "ImmutableList"}, 
-            {"ImmutableArray", "ImmutableArray"},
-            {"ImmutableQueue", "ImmutableQueue"},
-            {"IImmutableQueue", "ImmutableQueue"},
-            {"ImmutableStack", "ImmutableStack"},
-            {"IImmutableStack", "ImmutableStack"}
-        };
+            "IReadOnlyCollection", "List"
+        },
+        {
+            "IReadOnlyList", "List"
+        },
+        {
+            "IReadOnlySet", "List"
+        }
+    };
 
-        public bool TryCreate(GenericNameSyntax genericNameSyntax, ref ExpressionSyntax? expressionSyntax, ref ParameterSyntax argumentParameter)
+    private static readonly Dictionary<string, string> ImmutableTypeMap = new()
+    {
         {
-            if (genericNameSyntax.TypeArgumentList.Arguments.Count != 1)
-            {
-                return false;
-            }
-            
-            var elementType = genericNameSyntax.TypeArgumentList.Arguments[0];
-            var newArgumentParameter = argumentParameter.WithType(
+            "ImmutableList", "ImmutableList"
+        },
+        {
+            "IImmutableList", "ImmutableList"
+        },
+        {
+            "ImmutableArray", "ImmutableArray"
+        },
+        {
+            "ImmutableQueue", "ImmutableQueue"
+        },
+        {
+            "IImmutableQueue", "ImmutableQueue"
+        },
+        {
+            "ImmutableStack", "ImmutableStack"
+        },
+        {
+            "IImmutableStack", "ImmutableStack"
+        }
+    };
+
+    public bool TryCreate(GenericNameSyntax genericNameSyntax, ref ExpressionSyntax? expressionSyntax, ref ParameterSyntax argumentParameter)
+    {
+        if (genericNameSyntax.TypeArgumentList.Arguments.Count != 1)
+        {
+            return false;
+        }
+
+        var elementType = genericNameSyntax.TypeArgumentList.Arguments[0];
+        var newArgumentParameter = argumentParameter.WithType(
                 SyntaxFactory.ArrayType(elementType).AddRankSpecifiers(SyntaxFactory.ArrayRankSpecifier()))
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
-            
-            if (GenericTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out var genericTypeName))
-            {
-                expressionSyntax = CreateGenericContainer(expressionSyntax, genericTypeName, elementType);
-                argumentParameter = newArgumentParameter;
-                return true;
-            }
-            
-            if (ReadonlyTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out genericTypeName))
-            {
-                expressionSyntax = CreateGenericContainer(expressionSyntax, genericTypeName, elementType);
-                expressionSyntax = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        expressionSyntax,
-                        SyntaxFactory.IdentifierName(nameof(List<object>.AsReadOnly))));
-                argumentParameter = newArgumentParameter;
-                return true;
-            }
+            .AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
 
-            if (ImmutableTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out var immutableTypeName))
+        if (GenericTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out var genericTypeName))
+        {
+            expressionSyntax = CreateGenericContainer(expressionSyntax, genericTypeName, elementType);
+            argumentParameter = newArgumentParameter;
+            return true;
+        }
+
+        if (ReadonlyTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out genericTypeName))
+        {
+            expressionSyntax = CreateGenericContainer(expressionSyntax, genericTypeName, elementType);
+            expressionSyntax = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    expressionSyntax,
+                    SyntaxFactory.IdentifierName(nameof(List<object>.AsReadOnly))));
+
+            argumentParameter = newArgumentParameter;
+            return true;
+        }
+
+        if (ImmutableTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out var immutableTypeName))
+        {
+            var immutableDataTypeName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier($"System.Collections.Immutable.{immutableTypeName}"));
+            if (expressionSyntax != default)
             {
-                var immutableDataTypeName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier($"System.Collections.Immutable.{immutableTypeName}"));
-                if (expressionSyntax != default)
-                {
-                    expressionSyntax = SyntaxFactory.InvocationExpression(
+                expressionSyntax = SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             immutableDataTypeName,
                             SyntaxFactory.GenericName("CreateRange").AddTypeArgumentListArguments(elementType)))
-                        .AddArgumentListArguments(SyntaxFactory.Argument(expressionSyntax));
-                }
-                else
-                {
-                    expressionSyntax = SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.GenericName(immutableTypeName).AddTypeArgumentListArguments(elementType),
-                        SyntaxFactory.IdentifierName("Empty"));
-                }
-
-                argumentParameter = newArgumentParameter;
-                return true;
+                    .AddArgumentListArguments(SyntaxFactory.Argument(expressionSyntax));
+            }
+            else
+            {
+                expressionSyntax = SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.GenericName(immutableTypeName).AddTypeArgumentListArguments(elementType),
+                    SyntaxFactory.IdentifierName("Empty"));
             }
 
-            return false;
+            argumentParameter = newArgumentParameter;
+            return true;
         }
 
-        private static ExpressionSyntax CreateGenericContainer(ExpressionSyntax? expressionSyntax, string genericTypeName, TypeSyntax elementType)
-        {
-            var genericDataType = SyntaxFactory.GenericName(
+        return false;
+    }
+
+    private static ExpressionSyntax CreateGenericContainer(ExpressionSyntax? expressionSyntax, string genericTypeName, TypeSyntax elementType)
+    {
+        var genericDataType = SyntaxFactory.GenericName(
                 SyntaxFactory.Identifier($"System.Collections.Generic.{genericTypeName}"))
-                .AddTypeArgumentListArguments(elementType);
+            .AddTypeArgumentListArguments(elementType);
 
-            var result = SyntaxFactory.ObjectCreationExpression(genericDataType);
-            return expressionSyntax != default
-                ? result.AddArgumentListArguments(SyntaxFactory.Argument(expressionSyntax))
-                : result.AddArgumentListArguments();
-        }
+        var result = SyntaxFactory.ObjectCreationExpression(genericDataType);
+        return expressionSyntax != default
+            ? result.AddArgumentListArguments(SyntaxFactory.Argument(expressionSyntax))
+            : result.AddArgumentListArguments();
     }
 }

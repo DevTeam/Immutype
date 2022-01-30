@@ -1,15 +1,10 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedMemberInSuper.Global
-namespace Immutype.Core
+namespace Immutype.Core;
+
+internal interface ISourceBuilder
 {
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using System.Collections.Generic;
+    IEnumerable<Source> Build(GenerationContext<SyntaxNode> context);
 
-    internal interface ISourceBuilder
-    {
-        IEnumerable<Source> Build(GenerationContext<SyntaxNode> context);
-
-        IEnumerable<Source> Build(GenerationContext<TypeDeclarationSyntax> context);
-    }
+    IEnumerable<Source> Build(GenerationContext<TypeDeclarationSyntax> context);
 }

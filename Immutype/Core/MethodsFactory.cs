@@ -1,45 +1,38 @@
 // ReSharper disable ClassNeverInstantiated.Global
-namespace Immutype.Core
+namespace Immutype.Core;
+
+internal class MethodsFactory : IMethodsFactory
 {
-    using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.Linq;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    private readonly ImmutableArray<IMethodFactory> _methodFactories;
+    private readonly ISyntaxNodeFactory _syntaxNodeFactory;
 
-    internal class MethodsFactory : IMethodsFactory
+    public MethodsFactory(ImmutableArray<IMethodFactory> methodFactories, ISyntaxNodeFactory syntaxNodeFactory)
     {
-        private readonly ImmutableArray<IMethodFactory> _methodFactories;
-        private readonly ISyntaxNodeFactory _syntaxNodeFactory;
+        _methodFactories = methodFactories;
+        _syntaxNodeFactory = syntaxNodeFactory;
+    }
 
-        public MethodsFactory(ImmutableArray<IMethodFactory> methodFactories, ISyntaxNodeFactory syntaxNodeFactory)
-        {
-            _methodFactories = methodFactories;
-            _syntaxNodeFactory = syntaxNodeFactory;
-        }
-
-        public IEnumerable<MemberDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IReadOnlyList<ParameterSyntax> parameters)
-        {
-            var thisParameter = 
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier("it"))
+    public IEnumerable<MemberDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IReadOnlyList<ParameterSyntax> parameters)
+    {
+        var thisParameter =
+            SyntaxFactory.Parameter(SyntaxFactory.Identifier("it"))
                 .WithType(targetType)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
 
-            if (
-                context.Options is CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp7_2 }
-                && _syntaxNodeFactory.IsReadonlyType(context.Syntax))
-            {
-                thisParameter = thisParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.InKeyword));
-            }
-
-            return
-                from currentParameter in parameters
-                let parameterType = currentParameter.Type
-                where parameterType != default
-                from methodFactory in _methodFactories
-                from method in methodFactory.Create(context, targetType, parameters, currentParameter, thisParameter)
-                where !context.CancellationToken.IsCancellationRequested
-                select method;
+        if (
+            context.Options is CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp7_2 }
+            && _syntaxNodeFactory.IsReadonlyType(context.Syntax))
+        {
+            thisParameter = thisParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.InKeyword));
         }
+
+        return
+            from currentParameter in parameters
+            let parameterType = currentParameter.Type
+            where parameterType != default
+            from methodFactory in _methodFactories
+            from method in methodFactory.Create(context, targetType, parameters, currentParameter, thisParameter)
+            where !context.CancellationToken.IsCancellationRequested
+            select method;
     }
 }

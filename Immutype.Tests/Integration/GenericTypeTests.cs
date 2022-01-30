@@ -1,23 +1,19 @@
-﻿using Shouldly;
-using Xunit;
+﻿
+
 // ReSharper disable StringLiteralTypo
 
-namespace Immutype.Tests.Integration
+namespace Immutype.Tests.Integration;
+
+public class GenericTypeTests
 {
-    using System.Security.Cryptography.X509Certificates;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-
-    public class GenericTypeTests
+    [Fact]
+    public void ShouldSupportGenerics()
     {
-        [Fact]
-        public void ShouldSupportGenerics()
-        {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec<int, string>(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec<int, string>(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
 
-            // When
-            var output = @"
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -26,20 +22,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec<T, T2>(IList<T> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportGenericConstraints()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec<int, string>(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportGenericConstraints()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec<int, string>(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -49,10 +51,15 @@ namespace Immutype.Tests.Integration
                 [Target]
                 public record Rec<T, T2>(IList<T> vals)
                     where T: struct;
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
-        }
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,99,44"
+        }, generatedCode);
     }
 }

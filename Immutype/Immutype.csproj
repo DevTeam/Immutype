@@ -23,25 +23,25 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Components\Contracts.cs" />
-        <Compile Remove="Components\Contracts.cs" />
+        <EmbeddedResource Include="Components\Contracts.cs"/>
+        <Compile Remove="Components\Contracts.cs"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/roslyn$(AnalyzerRoslynVersion)/cs" Visible="false" />
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/roslyn$(AnalyzerRoslynVersion)/cs" Visible="false"/>
     </ItemGroup>
 
     <ItemGroup>
         <!-- Should be compatible with .NET 5.0.102+ and Visual Studio 16.8+ -->
         <!-- https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md#versioning -->
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(AnalyzerRoslynPackageVersion)" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(AnalyzerRoslynPackageVersion)" PrivateAssets="all"/>
         <PackageReference Include="Pure.DI" Version="1.1.21">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}"/>
     </ItemGroup>
 </Project>

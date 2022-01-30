@@ -1,10 +1,7 @@
 ﻿#if !ROSLYN38
 namespace Immutype
 {
-    using System.Diagnostics;
-     using Core;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using Core;
 
     [Generator(LanguageNames.CSharp)]
     public class SourceGenerator : IIncrementalGenerator
@@ -30,8 +27,8 @@ namespace Immutype
             var sourceBuilder = Composer.ResolveISourceBuilder();
             var typeSyntaxFilter = Composer.ResolveITypeSyntaxFilter();
             var changes = context.SyntaxProvider.CreateSyntaxProvider(
-                (node, _) => node is TypeDeclarationSyntax typeDeclarationSyntax && typeSyntaxFilter.IsAccepted(typeDeclarationSyntax),
-                (syntaxContext, _) => syntaxContext)
+                    (node, _) => node is TypeDeclarationSyntax typeDeclarationSyntax && typeSyntaxFilter.IsAccepted(typeDeclarationSyntax),
+                    (syntaxContext, _) => syntaxContext)
                 .Combine(context.ParseOptionsProvider)
                 .Combine(context.CompilationProvider)
                 .Collect();

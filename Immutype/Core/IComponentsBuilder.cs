@@ -1,11 +1,7 @@
 // ReSharper disable UnusedMember.Global
-namespace Immutype.Core
-{
-    using System.Collections.Generic;
-    using System.Threading;
+namespace Immutype.Core;
 
-    internal interface IComponentsBuilder
-    {
-        IEnumerable<Source> Build(CancellationToken cancellationToken);
-    }
+internal interface IComponentsBuilder
+{
+    IEnumerable<Source> Build(CancellationToken cancellationToken);
 }

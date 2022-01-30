@@ -1,29 +1,24 @@
-namespace Immutype.Core
+namespace Immutype.Core;
+
+internal interface ISyntaxNodeFactory
 {
-    using System.Collections.Generic;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    bool IsValueType(TypeDeclarationSyntax typeDeclarationSyntax);
 
-    internal interface ISyntaxNodeFactory
-    {
-        bool IsValueType(TypeDeclarationSyntax typeDeclarationSyntax);
-        
-        bool IsReadonlyType(TypeDeclarationSyntax typeDeclarationSyntax);
+    bool IsReadonlyType(TypeDeclarationSyntax typeDeclarationSyntax);
 
-        bool HasTargetAttribute(MemberDeclarationSyntax memberDeclarationSyntax);
-            
-        TypeSyntax? GetUnqualified(TypeSyntax? typeSyntax);
+    bool HasTargetAttribute(MemberDeclarationSyntax memberDeclarationSyntax);
 
-        bool IsAccessible(IEnumerable<SyntaxToken> modifiers);
-        
-        ReturnStatementSyntax CreateReturnStatement(TypeSyntax typeSyntax, IEnumerable<ArgumentSyntax> arguments);
-        
-        MethodDeclarationSyntax CreateExtensionMethod(TypeSyntax returnTypeSyntax, string name);
+    TypeSyntax? GetUnqualified(TypeSyntax? typeSyntax);
 
-        ArgumentSyntax CreateTransientArgument(TypeDeclarationSyntax owner, ParameterSyntax thisParameter, ParameterSyntax parameter);
-        
-        MemberAccessExpressionSyntax CreateTransientArgumentExpression(TypeDeclarationSyntax owner, ParameterSyntax thisParameter, ParameterSyntax parameter);
+    bool IsAccessible(IEnumerable<SyntaxToken> modifiers);
 
-        IEnumerable<StatementSyntax> CreateGuards(GenerationContext<TypeDeclarationSyntax> context, ParameterSyntax parameter, bool force);
-    }
+    ReturnStatementSyntax CreateReturnStatement(TypeSyntax typeSyntax, IEnumerable<ArgumentSyntax> arguments);
+
+    MethodDeclarationSyntax CreateExtensionMethod(TypeSyntax returnTypeSyntax, string name);
+
+    ArgumentSyntax CreateTransientArgument(TypeDeclarationSyntax owner, ParameterSyntax thisParameter, ParameterSyntax parameter);
+
+    MemberAccessExpressionSyntax CreateTransientArgumentExpression(TypeDeclarationSyntax owner, ParameterSyntax thisParameter, ParameterSyntax parameter);
+
+    IEnumerable<StatementSyntax> CreateGuards(GenerationContext<TypeDeclarationSyntax> context, ParameterSyntax parameter, bool force);
 }

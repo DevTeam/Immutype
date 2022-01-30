@@ -1,19 +1,19 @@
-﻿using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-// ReSharper disable CollectionNeverUpdated.Global
+﻿// ReSharper disable CollectionNeverUpdated.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 
-namespace Immutype.Tests.Integration
+namespace Immutype.Tests.Integration;
+
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+public class RunOptions
 {
-    public class RunOptions
-    {
-        public string Statements = "System.Console.WriteLine(Composer.Resolve<CompositionRoot>().Value);";
-        
-        public readonly List<string> AdditionalCode = new();
+    public string Statements = "System.Console.WriteLine(Composer.Resolve<CompositionRoot>().Value);";
 
-        public LanguageVersion LanguageVersion = LanguageVersion.Latest;
+    public readonly List<string> AdditionalCode = new();
 
-        public NullableContextOptions NullableContextOptions = NullableContextOptions.Disable;
-    }
+    public LanguageVersion LanguageVersion = LanguageVersion.Latest;
+
+    public NullableContextOptions NullableContextOptions = NullableContextOptions.Disable;
 }

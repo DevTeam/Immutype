@@ -1,28 +1,24 @@
 // ReSharper disable ClassNeverInstantiated.Global
-namespace Immutype.Core
+namespace Immutype.Core;
+
+internal class NameService : INameService
 {
-    using System.Collections.Generic;
-    using System.Linq;
+    public string ConvertToName(string name) =>
+        new(ConvertToName((IEnumerable<char>)name).ToArray());
 
-    internal class NameService : INameService
+    private static IEnumerable<char> ConvertToName(IEnumerable<char> ch)
     {
-        public string ConvertToName(string name) => 
-            new(ConvertToName((IEnumerable<char>)name).ToArray());
-
-        private static IEnumerable<char> ConvertToName(IEnumerable<char> ch)
+        var isFirst = true;
+        foreach (var c in ch)
         {
-            var isFirst = true;
-            foreach (var c in ch)
+            if (isFirst)
             {
-                if (isFirst)
-                {
-                    yield return char.ToUpper(c);
-                    isFirst = false;
-                }
-                else
-                {
-                    yield return c;
-                }
+                yield return char.ToUpper(c);
+                isFirst = false;
+            }
+            else
+            {
+                yield return c;
             }
         }
     }

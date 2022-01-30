@@ -1,13 +1,12 @@
-namespace Immutype.Benchmark
-{
-    using System.Reflection;
-    using BenchmarkDotNet.Running;
+namespace Immutype.Benchmark;
 
-    public static class Program
+using System.Reflection;
+using BenchmarkDotNet.Running;
+
+public static class Program
+{
+    public static void Main()
     {
-        public static void Main()
-        {
-            BenchmarkRunner.Run(Assembly.GetExecutingAssembly());
-        }
+        BenchmarkRunner.Run(Assembly.GetExecutingAssembly());
     }
 }

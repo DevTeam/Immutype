@@ -1,10 +1,6 @@
-namespace Immutype.Core
-{
-    using System.Collections.Generic;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
+namespace Immutype.Core;
 
-    internal interface IMethodFactory
-    {
-        IEnumerable<MethodDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter);
-    }
+internal interface IMethodFactory
+{
+    IEnumerable<MethodDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter);
 }

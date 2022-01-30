@@ -1,12 +1,6 @@
-namespace Immutype.Core
-{
-    using System.Collections.Generic;
-    using System.Threading;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
+namespace Immutype.Core;
 
-    internal interface IUnitFactory
-    {
-        IEnumerable<Source> Create(GenerationContext<TypeDeclarationSyntax> context, IReadOnlyList<ParameterSyntax> parameters);
-    }
+internal interface IUnitFactory
+{
+    IEnumerable<Source> Create(GenerationContext<TypeDeclarationSyntax> context, IReadOnlyList<ParameterSyntax> parameters);
 }

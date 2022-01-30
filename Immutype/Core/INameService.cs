@@ -1,7 +1,6 @@
-namespace Immutype.Core
+namespace Immutype.Core;
+
+internal interface INameService
 {
-    internal interface INameService
-    {
-        string ConvertToName(string name);
-    }
+    string ConvertToName(string name);
 }

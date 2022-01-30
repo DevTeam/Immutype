@@ -1,9 +1,6 @@
-namespace Immutype.Core
-{
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
+namespace Immutype.Core;
 
-    internal interface ITypeSyntaxFilter
-    {
-        bool IsAccepted(TypeDeclarationSyntax typeDeclarationSyntax);
-    }
+internal interface ITypeSyntaxFilter
+{
+    bool IsAccepted(TypeDeclarationSyntax typeDeclarationSyntax);
 }

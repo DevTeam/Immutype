@@ -1,9 +1,6 @@
-namespace Immutype.Core
-{
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
+namespace Immutype.Core;
 
-    internal interface IDataContainerFactory
-    {
-        bool TryCreate(GenericNameSyntax genericNameSyntax, ref ExpressionSyntax? expressionSyntax, ref ParameterSyntax argumentParameter);
-    }
+internal interface IDataContainerFactory
+{
+    bool TryCreate(GenericNameSyntax genericNameSyntax, ref ExpressionSyntax? expressionSyntax, ref ParameterSyntax argumentParameter);
 }

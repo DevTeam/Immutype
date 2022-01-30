@@ -1,12 +1,10 @@
 ﻿#if ROSLYN38
 namespace Immutype
 {
-    using System.Diagnostics;
     using Core;
-    using Microsoft.CodeAnalysis;
 
     [Generator]
-    public class SourceGenerator: ISourceGenerator
+    public class SourceGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context) { }
 

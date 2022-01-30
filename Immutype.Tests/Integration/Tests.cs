@@ -1,62 +1,71 @@
 ﻿// ReSharper disable StringLiteralTypo
-using Shouldly;
-using Xunit;
+namespace Immutype.Tests.Integration;
 
-namespace Immutype.Tests.Integration
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+public class Tests
 {
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-
-    public class Tests
+    [Fact]
+    public void ShouldCreateRecordWithNoValues()
     {
-        [Fact]
-        public void ShouldCreateRecordWithNoValues()
-        {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec());";
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec());";
 
-            // When
-            var output = @"
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
                 
                 [Immutype.Target]
                 public record Rec();
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Rec { }" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordWithSingleValue()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { }"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordWithSingleValue()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
                 
                 [Immutype.TargetAttribute()]
                 public record Rec(int val);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);
-        }
-
-        [Fact]
-        public void ShouldCreateRecordWithSingleGenericValue()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(new GenericValue<int>()).WithVal(new GenericValue<int>()));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = 99 }"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordWithSingleGenericValue()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(new GenericValue<int>()).WithVal(new GenericValue<int>()));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -68,60 +77,78 @@ namespace Immutype.Tests.Integration
                 
                 [Immutype.TargetAttribute()]
                 public record Rec(GenericValue<int> val);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Rec { val = Int32 }" }, generatedCode);
-        }
-        
-#if !ROSLYN38
-        [Fact]
-        public void ShouldCreateRecordStructWithSingleValue()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = Int32 }"
+        }, generatedCode);
+    }
+
+#if !ROSLYN38
+    [Fact]
+    public void ShouldCreateRecordStructWithSingleValue()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
                 
                 [Immutype.Target]
                 public record struct Rec(int val);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportBlockFreeNamespace()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = 99 }"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportBlockFreeNamespace()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+        // When
+        var output = @"
             namespace Sample;
             using System;
             [Immutype.Target]
             public record struct Rec(int val);
-            ".Run(out var generatedCode, new RunOptions { Statements = statements });
+            ".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
 
-            // Then
-            output.ShouldBe(new [] { "Rec { val = 99 }" }, generatedCode);
-        }
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = 99 }"
+        }, generatedCode);
+    }
 #endif
 
-        [Fact]
-        public void ShouldCreateRecordWithCtor()
-        {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99).Val);";
+    [Fact]
+    public void ShouldCreateRecordWithCtor()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99).Val);";
 
-            // When
-            var output = @"
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -136,20 +163,26 @@ namespace Immutype.Tests.Integration
 
                     public int Val { get; }
                 }
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "99" }, generatedCode);
-        }
-
-        [Fact]
-        public void ShouldCreateRecordWithTwoValues()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33, \"Abc\").WithVal(99).WithStr(\"Xyz\"));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "99"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordWithTwoValues()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33, \"Abc\").WithVal(99).WithStr(\"Xyz\"));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -157,20 +190,26 @@ namespace Immutype.Tests.Integration
                 
                 [Target]
                 public record Rec(int val, string str);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Rec { val = 99, str = Xyz }" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordWithSingleIEnumerable()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).WithVals(99, 66).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = 99, str = Xyz }"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordWithSingleIEnumerable()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).WithVals(99, 66).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -179,20 +218,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "99,66" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordAddSingleIEnumerable()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "99,66"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddSingleIEnumerable()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -201,20 +246,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "33,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordAddComplexIEnumerable()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33, 77}, 66).WithVal(55).AddVals(99).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddComplexIEnumerable()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33, 77}, 66).WithVal(55).AddVals(99).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -223,20 +274,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IEnumerable<int> vals, int val);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "33,77,99" }, generatedCode);
-        }
-
-        [Fact]
-        public void ShouldCreateRecordAddSingleIReadOnlyCollection()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,77,99"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddSingleIReadOnlyCollection()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -245,20 +302,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IReadOnlyCollection<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "33,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordAddSingleIReadOnlyList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddSingleIReadOnlyList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -267,20 +330,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IReadOnlyList<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "33,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordAddSingleICollection()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddSingleICollection()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -289,20 +358,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IList<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "33,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordAddSingleIList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99,44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddSingleIList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99,44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -311,20 +386,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IList<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "33,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordAddSingleList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddSingleList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -333,20 +414,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(List<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "33,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordAddSingleSystemCollectionsGenericList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddSingleSystemCollectionsGenericList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -355,20 +442,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(System.Collections.Generic.List<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "33,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordAddSingleArray()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[]{33}).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddSingleArray()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[]{33}).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -377,20 +470,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(int[] vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "33,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordAddSingleArrayDefault()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordAddSingleArrayDefault()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -399,20 +498,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(int[] vals = default);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateStructWithSingleValue()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateStructWithSingleValue()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -423,20 +528,26 @@ namespace Immutype.Tests.Integration
                     public readonly int Val;
                     public Rec(int val) { Val = val; }
                 }
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Sample.Rec" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateStructWithSingleValueWhenCs71()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Sample.Rec"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateStructWithSingleValueWhenCs71()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -447,20 +558,27 @@ namespace Immutype.Tests.Integration
                     public readonly int Val;
                     public Rec(int val) { Val = val; }
                 }
-            }".Run(out var generatedCode, new RunOptions { Statements = statements, LanguageVersion = LanguageVersion.CSharp7_1});
-
-            // Then
-            output.ShouldBe(new [] { "Sample.Rec" }, generatedCode);
-        }
-
-        [Fact]
-        public void ShouldCreateClassWithSingleValue()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+            Statements = statements,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Sample.Rec"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateClassWithSingleValue()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -471,20 +589,26 @@ namespace Immutype.Tests.Integration
                     public readonly int Val;
                     public Rec(int val) { Val = val; }
                 }
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Sample.Rec" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateClassWithValues()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(33, 99).WithVal1(99));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Sample.Rec"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateClassWithValues()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33, 99).WithVal1(99));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -500,20 +624,26 @@ namespace Immutype.Tests.Integration
                         Val2 = val2;
                     }
                 }
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Sample.Rec" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportImmutableList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Sample.Rec"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportImmutableList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -522,20 +652,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(ImmutableList<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportIImmutableList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "22,55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportIImmutableList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -544,20 +680,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IImmutableList<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportImmutableArray()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableArray.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "22,55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportImmutableArray()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableArray.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -566,20 +708,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(ImmutableArray<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
-        }
-
-        [Fact]
-        public void ShouldSupportImmutableArrayWhenDefault()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(22, 55).AddVals(99,44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "22,55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportImmutableArrayWhenDefault()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(22, 55).AddVals(99,44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -588,20 +736,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(ImmutableArray<int> vals = default);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportImmutableQueue()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableQueue.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "22,55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportImmutableQueue()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableQueue.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -610,20 +764,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(ImmutableQueue<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportImmutableQueueWhenDefault()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec().WithVals(22, 55).AddVals(99,44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "22,55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportImmutableQueueWhenDefault()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec().WithVals(22, 55).AddVals(99,44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -632,21 +792,27 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(ImmutableQueue<int> vals = default);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            // Then
-            output.ShouldBe(new [] { "22,55,99,44" }, generatedCode);
-        }
-
-        [Fact]
-        public void ShouldSupportImmutableStack()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableStack.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        // Then
+        output.ShouldBe(new[]
+        {
+            "22,55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportImmutableStack()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableStack.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -655,40 +821,52 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(ImmutableStack<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "44,99,22,55" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldCreateRecordWithDefaultValue()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(\"abc\", 33).WithVal(99).WithDefaultVal());";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "44,99,22,55"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldCreateRecordWithDefaultValue()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(\"abc\", 33).WithVal(99).WithDefaultVal());";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
                 
                 [Immutype.TargetAttribute()]
                 public record Rec(string str, int val = 44);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Rec { str = abc, val = 44 }" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportWithWithOriginType()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(\"abc\", ImmutableArray.Create(33)).WithVals(ImmutableArray.Create(11, 22)).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { str = abc, val = 44 }"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportWithWithOriginType()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(\"abc\", ImmutableArray.Create(33)).WithVals(ImmutableArray.Create(11, 22)).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -697,20 +875,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(string str, ImmutableArray<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "11,22" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportRemove()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).RemoveVals(33, 66).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "11,22"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportRemove()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).RemoveVals(33, 66).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -719,20 +903,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "99" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "99"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -741,20 +931,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(List<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportIList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportIList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -763,20 +959,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IList<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportHashSet()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new HashSet<int>{33}).WithVals(55).AddVals(99, 55, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportHashSet()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new HashSet<int>{33}).WithVals(55).AddVals(99, 55, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -785,20 +987,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(HashSet<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportHashSetWithDefault()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(55).AddVals(99, 55, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportHashSetWithDefault()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(55).AddVals(99, 55, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -807,20 +1015,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(HashSet<int> vals = default);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportISet()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new HashSet<int>{33}).WithVals(55).AddVals(99, 55, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportISet()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new HashSet<int>{33}).WithVals(55).AddVals(99, 55, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -829,20 +1043,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(ISet<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportQueue()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new Queue<int>(new[]{33})).WithVals(55).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportQueue()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new Queue<int>(new[]{33})).WithVals(55).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -851,20 +1071,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(Queue<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "55,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportStack()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new Stack<int>(new[]{33})).WithVals(55).AddVals(99, 44).vals));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportStack()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new Stack<int>(new[]{33})).WithVals(55).AddVals(99, 44).vals));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -873,20 +1099,26 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(Stack<int> vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements });
-            
-            // Then
-            output.ShouldBe(new [] { "44,99,55" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportNullableIList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55, 66).AddVals(99, 44).vals!));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "44,99,55"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportNullableIList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55, 66).AddVals(99, 44).vals!));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -895,20 +1127,27 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IList<int>? vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements, NullableContextOptions = NullableContextOptions.Enable});
-            
-            // Then
-            output.ShouldBe(new [] { "55,66,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportNullableICollection()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55, 66).AddVals(99, 44).vals!));";
+            Statements = statements,
+            NullableContextOptions = NullableContextOptions.Enable
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,66,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportNullableICollection()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55, 66).AddVals(99, 44).vals!));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -917,20 +1156,27 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(ICollection<int>? vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements, NullableContextOptions = NullableContextOptions.Enable});
-            
-            // Then
-            output.ShouldBe(new [] { "55,66,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportNullableIImmutableList()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create<int>(33)).WithVals(55, 66).AddVals(99, 44).vals!));";
+            Statements = statements,
+            NullableContextOptions = NullableContextOptions.Enable
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,66,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportNullableIImmutableList()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create<int>(33)).WithVals(55, 66).AddVals(99, 44).vals!));";
+
+        // When
+        var output = @"
             namespace Sample
             {
                 using System;
@@ -939,20 +1185,27 @@ namespace Immutype.Tests.Integration
 
                 [Target]
                 public record Rec(IImmutableList<int>? vals);
-            }".Run(out var generatedCode, new RunOptions { Statements = statements, NullableContextOptions = NullableContextOptions.Enable});
-            
-            // Then
-            output.ShouldBe(new [] { "55,66,99,44" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportPartialUsing()
+            }".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2()).WithVal(new Types.Rec2()));";
+            Statements = statements,
+            NullableContextOptions = NullableContextOptions.Enable
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "55,66,99,44"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportPartialUsing()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2()).WithVal(new Types.Rec2()));";
+
+        // When
+        var output = @"
             using System.Collections.Generic;
             namespace Sample
             {
@@ -970,20 +1223,26 @@ namespace Immutype.Tests.Integration
                 [Immutype.TargetAttribute()]
                 public record Rec2();
             }
-            ".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Rec { val = Rec2 { } }" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportTopLevelUsing()
+            ".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2(), new System.Text.StringBuilder()).WithVal(new Types.Rec2()));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = Rec2 { } }"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportTopLevelUsing()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2(), new System.Text.StringBuilder()).WithVal(new Types.Rec2()));";
+
+        // When
+        var output = @"
             using System.Text;
             namespace Sample
             {
@@ -1001,20 +1260,26 @@ namespace Immutype.Tests.Integration
                 [Immutype.TargetAttribute()]
                 public record Rec2();
             }
-            ".Run(out var generatedCode, new RunOptions { Statements = statements });
-
-            // Then
-            output.ShouldBe(new [] { "Rec { val = Rec2 { }, stringBuilder =  }" }, generatedCode);
-        }
-        
-        [Fact]
-        public void ShouldSupportEmptyNamespace()
+            ".Run(out var generatedCode, new RunOptions
         {
-            // Given
-            const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2()).WithVal(new Types.Rec2()));";
+            Statements = statements
+        });
 
-            // When
-            var output = @"
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = Rec2 { }, stringBuilder =  }"
+        }, generatedCode);
+    }
+
+    [Fact]
+    public void ShouldSupportEmptyNamespace()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2()).WithVal(new Types.Rec2()));";
+
+        // When
+        var output = @"
             using System;
             using Types;
             using System.Collections.Generic;
@@ -1027,10 +1292,15 @@ namespace Immutype.Tests.Integration
                 [Immutype.TargetAttribute()]
                 public record Rec2();
             }
-            ".Run(out var generatedCode, new RunOptions { Statements = statements });
+            ".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
 
-            // Then
-            output.ShouldBe(new [] { "Rec { val = Rec2 { } }" }, generatedCode);
-        }
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = Rec2 { } }"
+        }, generatedCode);
     }
 }

@@ -147,7 +147,7 @@ public class SampleScenario
 
 ``` CSharp
 [Immutype.Target]
-internal record Person(string Name, int Age = 0, params Person[] Friends);
+internal readonly record struct Person(string Name, int Age = 0, params Person[] Friends);
 
 public class Array
 { 
@@ -173,7 +173,7 @@ public class Array
 
 ``` CSharp
 [Immutype.Target]
-internal record Person(string Name = "John", int Age = 17);
+internal readonly record struct Person(string Name = "John", int Age = 17);
 
 public class ApplyingDefaults
 {
@@ -238,7 +238,7 @@ public class ImmutableCollection
 
 ``` CSharp
 [Immutype.Target]
-internal record Person(
+internal readonly record struct Person(
     string Name,
     int Age = 0,
     params Person[] Friends);
