@@ -3,6 +3,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable CheckNamespace
+// ReSharper disable UnusedParameter.Local
 namespace Immutype.UsageScenarios.Tests.ExplicitConstructorChoice
 {
     using System.Collections.Immutable;

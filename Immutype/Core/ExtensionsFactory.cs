@@ -4,9 +4,9 @@
 namespace Immutype.Core;
 
 #if ROSLYN38
-    using NamespaceType = Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax;
+    using NamespaceType = NamespaceDeclarationSyntax;
 #else
-using NamespaceType = BaseNamespaceDeclarationSyntax;
+    using NamespaceType = BaseNamespaceDeclarationSyntax;
 #endif
 
 internal class ExtensionsFactory : IUnitFactory

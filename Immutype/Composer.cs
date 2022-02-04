@@ -21,5 +21,6 @@ internal static partial class Composer
         .Bind<IMethodsFactory>().To<MethodsFactory>()
         .Bind<IDataContainerFactory>().To<DataContainerFactory>()
         .Bind<IMethodFactory>(typeof(MethodWithFactory)).To<MethodWithFactory>()
-        .Bind<IMethodFactory>(typeof(MethodAddRemoveFactory)).To<MethodAddRemoveFactory>();
+        .Bind<IMethodFactory>(typeof(MethodAddRemoveFactory)).To<MethodAddRemoveFactory>()
+        .Bind<ICommentsGenerator>().To<CommentsGenerator>();
 }

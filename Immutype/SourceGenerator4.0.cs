@@ -33,6 +33,7 @@ namespace Immutype
                 .Combine(context.CompilationProvider)
                 .Collect();
 
+            // ReSharper disable once VariableHidesOuterVariable
             context.RegisterSourceOutput(changes, (ctx, changes) =>
             {
                 // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator

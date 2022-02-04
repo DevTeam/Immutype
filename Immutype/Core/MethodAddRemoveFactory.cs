@@ -5,15 +5,18 @@ internal class MethodAddRemoveFactory : IMethodFactory
     private readonly INameService _nameService;
     private readonly ISyntaxNodeFactory _syntaxNodeFactory;
     private readonly IDataContainerFactory _dataContainerFactory;
+    private readonly ICommentsGenerator _commentsGenerator;
 
     public MethodAddRemoveFactory(
         INameService nameService,
         ISyntaxNodeFactory syntaxNodeFactory,
-        IDataContainerFactory dataContainerFactory)
+        IDataContainerFactory dataContainerFactory,
+        ICommentsGenerator commentsGenerator)
     {
         _nameService = nameService;
         _syntaxNodeFactory = syntaxNodeFactory;
         _dataContainerFactory = dataContainerFactory;
+        _commentsGenerator = commentsGenerator;
     }
 
     public IEnumerable<MethodDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
@@ -38,23 +41,31 @@ internal class MethodAddRemoveFactory : IMethodFactory
         var addArgs = CreateArguments(nameof(Enumerable.Concat), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter);
         if (addArgs.Any())
         {
-            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{name}" + targetDeclaration.TypeParameterList)
+            yield return _commentsGenerator.AddComments(
+                    $"Add <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+                    currentParameter, 
+                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be added to the copy of the instance.",
+                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{name}" + targetDeclaration.TypeParameterList)
                 .AddParameterListParameters(thisParameter, arrayParameter)
                 .WithConstraintClauses(targetDeclaration.ConstraintClauses)
                 .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
                 .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, addArgs));
+                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, addArgs)));
         }
 
         var removeArgs = CreateArguments(nameof(Enumerable.Except), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter);
         if (removeArgs.Any())
         {
-            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Remove{name}" + targetDeclaration.TypeParameterList)
-                .AddParameterListParameters(thisParameter, arrayParameter)
-                .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, removeArgs));
+            yield return _commentsGenerator.AddComments(
+                $"Remove <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+                currentParameter,
+                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be removed from the instance copy.",
+                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Remove{name}" + targetDeclaration.TypeParameterList)
+                    .AddParameterListParameters(thisParameter, arrayParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, removeArgs)));
         }
     }
 

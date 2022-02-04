@@ -7,15 +7,18 @@ internal class MethodWithFactory : IMethodFactory
     private readonly INameService _nameService;
     private readonly ISyntaxNodeFactory _syntaxNodeFactory;
     private readonly IDataContainerFactory _dataContainerFactory;
+    private readonly ICommentsGenerator _commentsGenerator;
 
     public MethodWithFactory(
         INameService nameService,
         ISyntaxNodeFactory syntaxNodeFactory,
-        IDataContainerFactory dataContainerFactory)
+        IDataContainerFactory dataContainerFactory,
+        ICommentsGenerator commentsGenerator)
     {
         _nameService = nameService;
         _syntaxNodeFactory = syntaxNodeFactory;
         _dataContainerFactory = dataContainerFactory;
+        _commentsGenerator = commentsGenerator;
     }
 
     public IEnumerable<MethodDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
@@ -38,32 +41,44 @@ internal class MethodWithFactory : IMethodFactory
         }
 
         var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
-        yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
-            .AddParameterListParameters(thisParameter, newArgumentParameter)
-            .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-            .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-            .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, newArgumentParameter, false).ToArray())
-            .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments));
+        yield return _commentsGenerator.AddComments(
+            $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+            currentParameter,
+            $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
+                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
+                .AddParameterListParameters(thisParameter, newArgumentParameter)
+                .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, newArgumentParameter, false).ToArray())
+                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments)));
 
         if (argumentParameter != newArgumentParameter && argumentParameter.Type is not ArrayTypeSyntax)
         {
             var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(SyntaxFactory.IdentifierName(currentParameter.Identifier)) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
-            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
-                .AddParameterListParameters(thisParameter, argumentParameter)
-                .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, argumentParameter, false).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
+            yield return _commentsGenerator.AddComments(
+                $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+                currentParameter,
+                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
+                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
+                    .AddParameterListParameters(thisParameter, argumentParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, argumentParameter, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args)));
         }
 
         if (currentParameter.Default != default && argumentParameter == newArgumentParameter)
         {
             var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(currentParameter.Default.Value) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
-            yield return _syntaxNodeFactory.CreateExtensionMethod(targetType, $"WithDefault{name}" + targetDeclaration.TypeParameterList)
-                .AddParameterListParameters(thisParameter)
-                .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args));
+            yield return _commentsGenerator.AddComments(
+                $"Set a default for <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+                currentParameter,
+                "",
+                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"WithDefault{name}" + targetDeclaration.TypeParameterList)
+                    .AddParameterListParameters(thisParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args)));
         }
     }
 
