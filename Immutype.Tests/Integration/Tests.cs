@@ -57,6 +57,32 @@ public class Tests
             "Rec { val = 99 }"
         }, generatedCode);
     }
+    
+    [Fact]
+    public void ShouldCreateRecordWithSingleNullableValue()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+        // When
+        var output = @"
+            namespace Sample
+            {
+                using System;
+                
+                [Immutype.TargetAttribute()]
+                public record Rec(int? val);
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = 99 }"
+        }, generatedCode);
+    }
 
     [Fact]
     public void ShouldCreateRecordWithSingleGenericValue()
@@ -968,6 +994,90 @@ public class Tests
         output.ShouldBe(new[]
         {
             "99"
+        }, generatedCode);
+    }
+    
+    [Fact]
+    public void ShouldSupportClear()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).ClearVals().vals));";
+
+        // When
+        var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(IEnumerable<int> vals);
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            ""
+        }, generatedCode);
+    }
+    
+    [Fact]
+    public void ShouldSupportClearWhenArray()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).ClearVals().vals));";
+
+        // When
+        var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(int[] vals);
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            ""
+        }, generatedCode);
+    }
+    
+    [Fact]
+    public void ShouldSupportClearWhenParamsArray()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).ClearVals().vals));";
+
+        // When
+        var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(params int[] vals);
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            ""
         }, generatedCode);
     }
 

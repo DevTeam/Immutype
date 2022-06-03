@@ -8,25 +8,22 @@ _Immutype_ is [.NET code generator](https://docs.microsoft.com/en-us/dotnet/csha
 
 For instance, for the type Foo for the constructor parameter *__values__* of type ```IEnumerable<int>``` following extension methods are generated:
 
-| Method | Purpose |
-|------- | ------- |
-| ```Foo WithValues(this Foo it, params int[] values)``` | replaces values by the new ones using a method with variable number of arguments |
-| ```Foo WithValues(this Foo it, IEnumerable<int> values)``` | replaces values by the new ones |
-| ```Foo AddValues(this Foo it, params int[] values)``` | adds values using a method with variable number of arguments |
-| ```Foo AddValues(this Foo it, IEnumerable<int> values)``` | adds values |
-| ```Foo RemoveValues(this Foo it, params int[] values)``` | removes values using a method with variable number of arguments |
-| ```Foo RemoveValues(this Foo it, IEnumerable<int> values)``` | removes values |
+- ```Foo WithValues(this Foo it, params int[] values)``` - to replace values by the new ones using a method with variable number of arguments
+- ```Foo WithValues(this Foo it, IEnumerable<int> values)``` - to replace values by the new ones
+- ```Foo AddValues(this Foo it, params int[] values)``` - to add values using a method with variable number of arguments
+- ```Foo AddValues(this Foo it, IEnumerable<int> values)``` - to add values
+- ```Foo RemoveValues(this Foo it, params int[] values)``` - to remove values using a method with variable number of arguments
+- ```Foo RemoveValues(this Foo it, IEnumerable<int> values)``` - to remove values
+- ```Foo ClearValues(this Foo it)``` - to clear all values
 
 For the type Foo for the constructor parameter *__value__* of other types, like ```int```, with default value ```99``` following extension methods are generated:
 
-| Method | Purpose |
-|------- | ------- |
-| ```Foo WithValue(this Foo it, int value)``` | replaces a value by the new one |
-| ```Foo WithDefaultValue(this Foo it)``` | replaces a value by the default value *__99__* |
+- ```Foo WithValue(this Foo it, int value)``` - to replace a value by the new one
+- ```Foo WithDefaultValue(this Foo it)``` - to replace a value by the default value *__99__*
 
 The extensions methods above are generating automatically for each ```public``` or ```internal``` type, like *__Foo__* marked by the attribute ```[Immutype.Target]``` in the static class named as *__FooExtensions__*. This generated class *__FooExtensions__* is static, has the same accessibility level and the same namespace like a target class *__Foo__*. Each generated static extension method has two attributes:
 - ```[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]``` - to improve performance
-- ```[Pure]``` - to indicates that this method is pure, that is, it does not make any visible state changes
+- ```[Pure]``` - to indicate that this method is pure, that is, it does not make any visible state changes
 
 _Immutype_ supports nullable [reference](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) and [value](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types) types and the following list of enumerable types:
 
@@ -92,6 +89,7 @@ _Immutype_ supports [IIncrementalGenerator](https://docs.microsoft.com/en-us/dot
   - [Sample scenario](#sample-scenario)
   - [Array](#array)
   - [Applying defaults](#applying-defaults)
+  - [Clearing](#clearing)
   - [Immutable collection](#immutable-collection)
   - [Removing](#removing)
   - [Generic types](#generic-types)
@@ -187,6 +185,33 @@ public class ApplyingDefaults
         
         john.Name.ShouldBe("John");
         john.Age.ShouldBe(17);
+    }
+}
+```
+
+
+
+### Clearing
+
+
+
+``` CSharp
+[Immutype.Target]
+internal readonly record struct Person(
+    string Name,
+    int Age = 0,
+    params Person[] Friends);
+
+public class Clearing
+{
+    public void Run()
+    {
+        var john = new Person("John",15, new Person("David").WithAge(16))
+            .AddFriends(new Person("James"));
+
+        john = john.ClearFriends();
+        
+        john.Friends.Length.ShouldBe(0);
     }
 }
 ```

@@ -5,6 +5,7 @@
   - [Sample scenario](#sample-scenario)
   - [Array](#array)
   - [Applying defaults](#applying-defaults)
+  - [Clearing](#clearing)
   - [Immutable collection](#immutable-collection)
   - [Removing](#removing)
   - [Generic types](#generic-types)
@@ -100,6 +101,33 @@ public class ApplyingDefaults
         
         john.Name.ShouldBe("John");
         john.Age.ShouldBe(17);
+    }
+}
+```
+
+
+
+### Clearing
+
+
+
+``` CSharp
+[Immutype.Target]
+internal readonly record struct Person(
+    string Name,
+    int Age = 0,
+    params Person[] Friends);
+
+public class Clearing
+{
+    public void Run()
+    {
+        var john = new Person("John",15, new Person("David").WithAge(16))
+            .AddFriends(new Person("James"));
+
+        john = john.ClearFriends();
+        
+        john.Friends.Length.ShouldBe(0);
     }
 }
 ```

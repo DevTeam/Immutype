@@ -39,35 +39,59 @@ internal class MethodWithFactory : IMethodFactory
                 arguments.Add(_syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
             }
         }
-
+        
         var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
-        yield return _commentsGenerator.AddComments(
-            $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
-            currentParameter,
-            $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
-                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
-                .AddParameterListParameters(thisParameter, newArgumentParameter)
-                .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, newArgumentParameter, false).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments)));
-
-        if (argumentParameter != newArgumentParameter && argumentParameter.Type is not ArrayTypeSyntax)
+        var isArrayParam = argumentParameter.Type is ArrayTypeSyntax;
+        var isCollectionParam = !AreEqu(argumentParameter, newArgumentParameter) || isArrayParam;
+        if (isArrayParam && argumentParameter.Modifiers.All(i => i.Kind() != SyntaxKind.ParamsKeyword))
         {
-            var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(SyntaxFactory.IdentifierName(currentParameter.Identifier)) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
+            argumentParameter = argumentParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+        }
+        
+        var variants = new List<ParameterSyntax>();
+        if (!isCollectionParam || argumentParameter.Type is not NullableTypeSyntax)
+        {
+            variants.Add(argumentParameter);
+        }
+
+        if (isCollectionParam && !isArrayParam)
+        {
+            variants.Add(newArgumentParameter);
+        }
+
+        foreach (var parameterSyntax in variants)
+        {
             yield return _commentsGenerator.AddComments(
                 $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
                 _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
-                    .AddParameterListParameters(thisParameter, argumentParameter)
+                    .AddParameterListParameters(thisParameter, parameterSyntax)
                     .WithConstraintClauses(targetDeclaration.ConstraintClauses)
                     .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, argumentParameter, false).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args)));
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, parameterSyntax, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments)));
         }
-
-        if (currentParameter.Default != default && argumentParameter == newArgumentParameter)
+        
+        if (isCollectionParam)
+        {
+            yield return _commentsGenerator.AddComments(
+                $"Clear <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+                currentParameter,
+                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
+                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Clear{name}" + targetDeclaration.TypeParameterList)
+                    .AddParameterListParameters(thisParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(
+                        SyntaxFactory.ReturnStatement(
+                            SyntaxFactory.InvocationExpression(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName(thisParameter.Identifier.Text),
+                                    SyntaxFactory.IdentifierName($"With{name}" + targetDeclaration.TypeParameterList))))));
+        }
+        
+        if (currentParameter.Default != default)
         {
             var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(currentParameter.Default.Value) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
             yield return _commentsGenerator.AddComments(
@@ -80,6 +104,21 @@ internal class MethodWithFactory : IMethodFactory
                     .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args)));
         }
+    }
+
+    private static bool AreEqu(BaseParameterSyntax argumentParameter, BaseParameterSyntax newArgumentParameter)
+    {
+        if (Equals(argumentParameter.Type, newArgumentParameter.Type))
+        {
+            return true;
+        }
+
+        if (argumentParameter.Type == default || newArgumentParameter.Type == default)
+        {
+            return false;
+        }
+
+        return argumentParameter.Type.IsEquivalentTo(newArgumentParameter.Type);
     }
 
     private ExpressionSyntax CreateWithExpression(ParameterSyntax currentParameter, out ParameterSyntax argumentParameter)
