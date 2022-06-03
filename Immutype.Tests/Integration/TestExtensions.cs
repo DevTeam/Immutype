@@ -69,7 +69,7 @@ public static class TestExtensions
                     .WithNullableContextOptions(options?.NullableContextOptions ?? NullableContextOptions.Disable))
             .AddSyntaxTrees(CSharpSyntaxTree.ParseText(hostCode, parseOptions))
             .AddSyntaxTrees(generatedSources.Select(i => CSharpSyntaxTree.ParseText(i.Code.ToString(), parseOptions)).ToArray())
-            .Check();
+            .Check(generatedCode);
 
         var tempFileName = Path.Combine(Environment.CurrentDirectory, Guid.NewGuid().ToString()[..4]);
         var assemblyPath = Path.ChangeExtension(tempFileName, "exe");
@@ -147,7 +147,7 @@ public static class TestExtensions
         }
     }
 
-    private static CSharpCompilation Check(this CSharpCompilation compilation)
+    private static CSharpCompilation Check(this CSharpCompilation compilation, string generatedCode)
     {
         var errors = (
                 from diagnostic in compilation.GetDiagnostics()
@@ -155,7 +155,7 @@ public static class TestExtensions
                 select GetErrorMessage(diagnostic))
             .ToList();
 
-        Assert.False(errors.Any(), string.Join(Environment.NewLine + Environment.NewLine, errors));
+        Assert.False(errors.Any(), string.Join(Environment.NewLine + Environment.NewLine, errors) + Environment.NewLine + Environment.NewLine + generatedCode);
         return compilation;
     }
 

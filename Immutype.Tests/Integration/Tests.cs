@@ -257,6 +257,62 @@ public class Tests
             "33,99,44"
         }, generatedCode);
     }
+    
+    [Fact]
+    public void ShouldProvideAddForOriginalParamType()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(Enumerable.Repeat(99, 2)).vals));";
+
+        // When
+        var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(IEnumerable<int> vals);
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            "33,99,99"
+        }, generatedCode);
+    }
+    
+    [Fact]
+    public void ShouldProvideRemoveForOriginalParamType()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33, 44}).RemoveVals(Enumerable.Repeat(33, 2)).vals));";
+
+        // When
+        var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(IEnumerable<int> vals);
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            "44"
+        }, generatedCode);
+    }
 
     [Fact]
     public void ShouldCreateRecordAddComplexIEnumerable()

@@ -13,7 +13,9 @@ For instance, for the type Foo for the constructor parameter *__values__* of typ
 | ```Foo WithValues(this Foo it, params int[] values)``` | replaces values by the new ones using a method with variable number of arguments |
 | ```Foo WithValues(this Foo it, IEnumerable<int> values)``` | replaces values by the new ones |
 | ```Foo AddValues(this Foo it, params int[] values)``` | adds values using a method with variable number of arguments |
+| ```Foo AddValues(this Foo it, IEnumerable<int> values)``` | adds values |
 | ```Foo RemoveValues(this Foo it, params int[] values)``` | removes values using a method with variable number of arguments |
+| ```Foo RemoveValues(this Foo it, IEnumerable<int> values)``` | removes values |
 
 For the type Foo for the constructor parameter *__value__* of other types, like ```int```, with default value ```99``` following extension methods are generated:
 

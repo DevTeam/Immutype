@@ -26,31 +26,32 @@ internal class MethodAddRemoveFactory : IMethodFactory
             yield break;
         }
 
+        var curParameters = parameters as ParameterSyntax[] ?? parameters.ToArray();
+        var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
+        var targetDeclaration = context.Syntax;
+        
         var elementType = GetElementType(currentParameter.Type);
         if (elementType == default)
         {
             yield break;
         }
-
+        
         var arrayType = SyntaxFactory.ArrayType(elementType).AddRankSpecifiers(SyntaxFactory.ArrayRankSpecifier());
         var arrayParameter = SyntaxFactory.Parameter(currentParameter.Identifier).WithType(arrayType).AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
 
-        var curParameters = parameters as ParameterSyntax[] ?? parameters.ToArray();
-        var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
-        var targetDeclaration = context.Syntax;
         var addArgs = CreateArguments(nameof(Enumerable.Concat), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter);
         if (addArgs.Any())
         {
             yield return _commentsGenerator.AddComments(
-                    $"Add <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
-                    currentParameter, 
+                $"Add <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+                currentParameter,
                 $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be added to the copy of the instance.",
                 _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{name}" + targetDeclaration.TypeParameterList)
-                .AddParameterListParameters(thisParameter, arrayParameter)
-                .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
-                .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, addArgs)));
+                    .AddParameterListParameters(thisParameter, arrayParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, addArgs)));
         }
 
         var removeArgs = CreateArguments(nameof(Enumerable.Except), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter);
@@ -65,6 +66,41 @@ internal class MethodAddRemoveFactory : IMethodFactory
                     .WithConstraintClauses(targetDeclaration.ConstraintClauses)
                     .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, arrayParameter, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, removeArgs)));
+        }
+        
+        if (currentParameter.Type is ArrayTypeSyntax)
+        {
+            yield break;
+        }
+
+        addArgs = CreateArguments(nameof(Enumerable.Concat), targetDeclaration, thisParameter, curParameters, currentParameter, currentParameter);
+        if (addArgs.Any())
+        {
+            yield return _commentsGenerator.AddComments(
+                $"Add <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+                currentParameter,
+                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be added to the copy of the instance.",
+                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Add{name}" + targetDeclaration.TypeParameterList)
+                    .AddParameterListParameters(thisParameter, currentParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, currentParameter, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, addArgs)));
+        }
+
+        removeArgs = CreateArguments(nameof(Enumerable.Except), targetDeclaration, thisParameter, curParameters, currentParameter, currentParameter);
+        if (removeArgs.Any())
+        {
+            yield return _commentsGenerator.AddComments(
+                $"Remove <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+                currentParameter,
+                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be removed from the instance copy.",
+                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Remove{name}" + targetDeclaration.TypeParameterList)
+                    .AddParameterListParameters(thisParameter, currentParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, currentParameter, false).ToArray())
                     .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, removeArgs)));
         }
     }
@@ -114,6 +150,7 @@ internal class MethodAddRemoveFactory : IMethodFactory
         ExpressionSyntax? result = default;
         if (thisExpression != default)
         {
+            ExpressionSyntax valExpression = SyntaxFactory.IdentifierName(arrayParameter.Identifier);
             if (addCheck)
             {
                 var defaultExpression = TryCreateExpression(enumerableMethod, default, currentParameterType, arrayParameter);
@@ -128,12 +165,26 @@ internal class MethodAddRemoveFactory : IMethodFactory
                     thisExpression));
             }
 
+            if (arrayParameter.Type is NullableTypeSyntax nullableTypeSyntax)
+            {
+                var defaultExpression = TryCreateExpression(enumerableMethod, default, nullableTypeSyntax.ElementType, arrayParameter);
+                if (defaultExpression == default)
+                {
+                    return default;
+                }
+                
+                valExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ConditionalExpression(
+                    SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, valExpression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                    defaultExpression,
+                    valExpression));
+            }
+
             result = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         thisExpression,
                         SyntaxFactory.IdentifierName(enumerableMethod)))
-                .AddArgumentListArguments(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(arrayParameter.Identifier)));
+                .AddArgumentListArguments(SyntaxFactory.Argument(valExpression));
         }
 
         switch (_syntaxNodeFactory.GetUnqualified(currentParameterType))
