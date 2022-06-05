@@ -35,7 +35,7 @@
         <!-- Should be compatible with .NET 5.0.102+ and Visual Studio 16.8+ -->
         <!-- https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md#versioning -->
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(AnalyzerRoslynPackageVersion)" PrivateAssets="all" />
-        <PackageReference Include="Pure.DI" Version="1.1.26">
+        <PackageReference Include="Pure.DI" Version="1.1.37">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
