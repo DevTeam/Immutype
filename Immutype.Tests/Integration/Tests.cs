@@ -255,6 +255,35 @@ public class Tests
             "99,66"
         }, generatedCode);
     }
+    
+    [Fact]
+    public void ShouldNotModifyCollectionsInWith()
+    {
+        // Given
+        const string statements = "var list = new List<int>{99, 66};" +
+                                  "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).WithVals(list).vals == list));";
+
+        // When
+        var output = @"
+            namespace Sample
+            {
+                using System;
+                using System.Collections.Generic;
+                using Immutype;
+
+                [Target]
+                public record Rec(IEnumerable<int> vals);
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            "True"
+        }, generatedCode);
+    }
 
     [Fact]
     public void ShouldCreateRecordAddSingleIEnumerable()

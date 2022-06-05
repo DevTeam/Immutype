@@ -28,15 +28,18 @@ internal class MethodWithFactory : IMethodFactory
         var newArgumentParameter = argumentParameter;
         var targetDeclaration = context.Syntax;
         var arguments = new List<ArgumentSyntax>();
+        var newArguments = new List<ArgumentSyntax>();
         foreach (var parameter in curParameters)
         {
             if (parameter == currentParameter)
             {
-                arguments.Add(SyntaxFactory.Argument(CreateWithExpression(argumentParameter, out newArgumentParameter)));
+                arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argumentParameter.Identifier.Text)));
+                newArguments.Add(SyntaxFactory.Argument(CreateWithExpression(argumentParameter, out newArgumentParameter)));
             }
             else
             {
                 arguments.Add(_syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
+                newArguments.Add(_syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
             }
         }
         
@@ -51,26 +54,30 @@ internal class MethodWithFactory : IMethodFactory
         var variants = new List<ParameterSyntax>();
         if (!isCollectionParam || argumentParameter.Type is not NullableTypeSyntax)
         {
-            variants.Add(argumentParameter);
+            yield return _commentsGenerator.AddComments(
+                $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
+                currentParameter,
+                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
+                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
+                    .AddParameterListParameters(thisParameter, argumentParameter)
+                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, argumentParameter, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments)));
         }
 
         if (isCollectionParam && !isArrayParam)
-        {
-            variants.Add(newArgumentParameter);
-        }
-
-        foreach (var parameterSyntax in variants)
         {
             yield return _commentsGenerator.AddComments(
                 $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
                 _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
-                    .AddParameterListParameters(thisParameter, parameterSyntax)
+                    .AddParameterListParameters(thisParameter, newArgumentParameter)
                     .WithConstraintClauses(targetDeclaration.ConstraintClauses)
                     .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, parameterSyntax, false).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments)));
+                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, newArgumentParameter, false).ToArray())
+                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, newArguments)));
         }
         
         if (isCollectionParam)
