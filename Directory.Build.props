@@ -9,7 +9,7 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/DevTeam/Immutype.git</RepositoryUrl>
-        <Copyright>Copyright (C) 2021 Nikolay Pianikov</Copyright>
+        <Copyright>Copyright (C) 2022 Nikolay Pianikov</Copyright>
 
         <AnalyzerRoslynVersion Condition="'$(AnalyzerRoslynVersion)'==''">4.0</AnalyzerRoslynVersion>
         <AnalyzerRoslynPackageVersion Condition="'$(AnalyzerRoslynPackageVersion)'==''">4.0.1</AnalyzerRoslynPackageVersion>

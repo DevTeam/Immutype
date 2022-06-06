@@ -7,9 +7,6 @@
         <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
         <OutputPath>bin/$(Configuration)/roslyn$(AnalyzerRoslynVersion)</OutputPath>
         <IsRoslynComponent>true</IsRoslynComponent>
-    </PropertyGroup>
-
-    <PropertyGroup>
         <DevelopmentDependency>true</DevelopmentDependency>
         <NoPackageAnalysis>true</NoPackageAnalysis>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -17,8 +14,8 @@
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
         <IsPackable>true</IsPackable>
         <PackageId>Immutype</PackageId>
-        <Description>Immutype for .NET.</Description>
-        <PackageTags>Immutype</PackageTags>
+        <Description>Immutability is easy!</Description>
+        <PackageTags>functional;functional-programming;dotnet;immutability;csharp-sourcegenerator</PackageTags>
         <Product>Immutype</Product>
     </PropertyGroup>
 
