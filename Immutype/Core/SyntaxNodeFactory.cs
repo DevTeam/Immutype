@@ -45,16 +45,18 @@ internal class SyntaxNodeFactory : ISyntaxNodeFactory
         !modifiers.Any(i => i.IsKind(SyntaxKind.StaticKeyword) || i.IsKind(SyntaxKind.PrivateKeyword) || i.IsKind(SyntaxKind.ProtectedKeyword));
 
     public ReturnStatementSyntax CreateReturnStatement(TypeSyntax typeSyntax, IEnumerable<ArgumentSyntax> arguments) =>
-        SyntaxFactory.ReturnStatement(
-            SyntaxFactory.ObjectCreationExpression(typeSyntax)
+        SyntaxRepo.ReturnStatement(
+            SyntaxRepo.ObjectCreationExpression(typeSyntax)
                 .AddArgumentListArguments(
-                    arguments.ToArray()));
+                    arguments.ToArray()))
+            .WithNewLine();
 
     public MethodDeclarationSyntax CreateExtensionMethod(TypeSyntax returnTypeSyntax, string name) =>
-        SyntaxFactory.MethodDeclaration(returnTypeSyntax, name)
+        SyntaxRepo.MethodDeclaration(returnTypeSyntax, name)
             .AddModifiers(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                SyntaxKind.PublicKeyword.WithSpace(),
+                SyntaxKind.StaticKeyword.WithSpace())
+            .WithNewLine()
             .AddAttributeLists(
                 SyntaxFactory.AttributeList()
                     .AddAttributes(AggressiveInliningAttr, PureAttr));
@@ -88,14 +90,15 @@ internal class SyntaxNodeFactory : ISyntaxNodeFactory
         yield return
             SyntaxFactory.IfStatement(
                 checkDefault,
-                SyntaxFactory.ThrowStatement(
-                    SyntaxFactory.ObjectCreationExpression(
+                SyntaxRepo.ThrowStatement(
+                    SyntaxRepo.ObjectCreationExpression(
                         SyntaxFactory.IdentifierName(
                             SyntaxFactory.Identifier("System.ArgumentNullException"))).AddArgumentListArguments(
                         SyntaxFactory.Argument(
                             SyntaxFactory.LiteralExpression(
                                 SyntaxKind.StringLiteralExpression,
-                                SyntaxFactory.Literal(parameter.Identifier.Text))))));
+                                SyntaxFactory.Literal(parameter.Identifier.Text))))))
+                .WithNewLine();
     }
 
     private static bool IsReferenceType(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax type)

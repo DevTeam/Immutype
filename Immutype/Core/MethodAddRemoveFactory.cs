@@ -37,7 +37,7 @@ internal class MethodAddRemoveFactory : IMethodFactory
         }
         
         var arrayType = SyntaxFactory.ArrayType(elementType).AddRankSpecifiers(SyntaxFactory.ArrayRankSpecifier());
-        var arrayParameter = SyntaxFactory.Parameter(currentParameter.Identifier).WithType(arrayType).AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+        var arrayParameter = SyntaxRepo.Parameter(currentParameter.Identifier).WithType(arrayType).AddModifiers(SyntaxKind.ParamsKeyword.WithSpace());
 
         var addArgs = CreateArguments(nameof(Enumerable.Concat), targetDeclaration, thisParameter, curParameters, currentParameter, arrayParameter);
         if (addArgs.Any())

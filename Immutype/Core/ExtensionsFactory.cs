@@ -13,7 +13,7 @@ internal class ExtensionsFactory : IUnitFactory
 {
     private static readonly UsingDirectiveSyntax[] AdditionalUsings =
     {
-        SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic")), SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq"))
+        SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic").WithSpace()), SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq").WithSpace())
     };
 
     private readonly IMethodsFactory _methodsFactory;
@@ -26,7 +26,7 @@ internal class ExtensionsFactory : IUnitFactory
         var typeDeclarationSyntax = context.Syntax;
         var ns = typeDeclarationSyntax.Ancestors()
 #if ROSLYN38
-                .OfType<NamespaceDeclarationSyntax>()
+            .OfType<NamespaceDeclarationSyntax>()
 #else
             .OfType<BaseNamespaceDeclarationSyntax>()
 #endif
@@ -42,14 +42,14 @@ internal class ExtensionsFactory : IUnitFactory
 
         var typeSyntax = SyntaxFactory.ParseName(typeName);
         var className = $"{typeDeclarationSyntax.Identifier.Text}Extensions";
-        var extensionsClass = SyntaxFactory.ClassDeclaration(className)
-            .AddModifiers(typeDeclarationSyntax.Modifiers.Where(i => !i.IsKind(SyntaxKind.ReadOnlyKeyword) && !i.IsKind(SyntaxKind.PartialKeyword)).ToArray())
-            .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword))
-            .AddMembers(_methodsFactory.Create(context, typeSyntax, parameters).ToArray());
+        var extensionsClass = SyntaxRepo.ClassDeclaration(className)
+            .AddModifiers(typeDeclarationSyntax.Modifiers.Where(i => !i.IsKind(SyntaxKind.ReadOnlyKeyword) && !i.IsKind(SyntaxKind.PartialKeyword)).Select(i => i.WithSpace()).ToArray())
+            .AddModifiers(SyntaxKind.StaticKeyword.WithSpace(), SyntaxKind.PartialKeyword.WithSpace())
+            .AddMembers(_methodsFactory.Create(context, typeSyntax, parameters).Select(i => i.WithNewLine().WithNewLine()).ToArray());
 
         extensionsClass = TryAddAttribute(context.SemanticModel, extensionsClass, "System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage");
 
-        var code = CreateRootNode(typeDeclarationSyntax, AdditionalUsings, extensionsClass).NormalizeWhitespace().ToString();
+        var code = CreateRootNode(typeDeclarationSyntax, AdditionalUsings, extensionsClass).ToString();
         var fileName = string.Join(".", ns.Select(i => i.Name.ToString()).Concat(new[]
         {
             typeDeclarationSyntax.Identifier.Text
@@ -82,7 +82,7 @@ internal class ExtensionsFactory : IUnitFactory
     private static UsingDirectiveSyntax[] GetUsings(IEnumerable<UsingDirectiveSyntax> usings, IEnumerable<UsingDirectiveSyntax> additionalUsings)
     {
         var currentUsins = usings.Select(i => i.Name.ToString()).ToImmutableHashSet();
-        return additionalUsings.Where(i => !currentUsins.Contains(i.Name.ToString())).ToArray();
+        return additionalUsings.Where(i => !currentUsins.Contains(i.Name.ToString())).Select(i => i.WithNewLine()).ToArray();
     }
 
     private static ClassDeclarationSyntax TryAddAttribute(SemanticModel semanticModel, ClassDeclarationSyntax classDeclarationSyntax, string attributeClassName)
@@ -90,8 +90,9 @@ internal class ExtensionsFactory : IUnitFactory
         var excludeFromCodeCoverageType = semanticModel.Compilation.GetTypeByMetadataName(attributeClassName + "Attribute");
         if (excludeFromCodeCoverageType != default)
         {
-            classDeclarationSyntax = classDeclarationSyntax
-                .AddAttributeLists(SyntaxFactory.AttributeList().AddAttributes(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(attributeClassName))));
+            classDeclarationSyntax = classDeclarationSyntax.WithNewLine()
+                .AddAttributeLists(SyntaxFactory.AttributeList().AddAttributes(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(attributeClassName))))
+                .WithNewLine();
         }
 
         return classDeclarationSyntax;

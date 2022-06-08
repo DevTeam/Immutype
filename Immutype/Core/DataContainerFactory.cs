@@ -86,7 +86,7 @@ internal class DataContainerFactory : IDataContainerFactory
         var elementType = genericNameSyntax.TypeArgumentList.Arguments[0];
         var newArgumentParameter = argumentParameter.WithType(
                 SyntaxFactory.ArrayType(elementType).AddRankSpecifiers(SyntaxFactory.ArrayRankSpecifier()))
-            .AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+            .AddModifiers(SyntaxKind.ParamsKeyword.WithSpace());
 
         if (GenericTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out var genericTypeName))
         {
@@ -141,7 +141,7 @@ internal class DataContainerFactory : IDataContainerFactory
                 SyntaxFactory.Identifier($"System.Collections.Generic.{genericTypeName}"))
             .AddTypeArgumentListArguments(elementType);
 
-        var result = SyntaxFactory.ObjectCreationExpression(genericDataType);
+        var result = SyntaxRepo.ObjectCreationExpression(genericDataType);
         return expressionSyntax != default
             ? result.AddArgumentListArguments(SyntaxFactory.Argument(expressionSyntax))
             : result.AddArgumentListArguments();

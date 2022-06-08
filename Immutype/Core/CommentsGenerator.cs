@@ -48,7 +48,7 @@ public class CommentsGenerator : ICommentsGenerator
             }
 
             lines.Add("/// <returns>The modified copy of the original instance.</returns>");
-            return target.WithLeadingTrivia(lines.Select(SyntaxFactory.Comment));
+            return target.WithLeadingTrivia(lines.SelectMany(s => new List<SyntaxTrivia>() { SyntaxFactory.CarriageReturn, SyntaxFactory.LineFeed, SyntaxFactory.Comment(s)}));
         }
         
         return target;

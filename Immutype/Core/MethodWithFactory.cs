@@ -48,7 +48,7 @@ internal class MethodWithFactory : IMethodFactory
         var isCollectionParam = !AreEqu(argumentParameter, newArgumentParameter) || isArrayParam;
         if (isArrayParam && argumentParameter.Modifiers.All(i => i.Kind() != SyntaxKind.ParamsKeyword))
         {
-            argumentParameter = argumentParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+            argumentParameter = argumentParameter.AddModifiers(SyntaxKind.ParamsKeyword.WithSpace());
         }
         
         var variants = new List<ParameterSyntax>();
@@ -90,7 +90,7 @@ internal class MethodWithFactory : IMethodFactory
                     .AddParameterListParameters(thisParameter)
                     .WithConstraintClauses(targetDeclaration.ConstraintClauses)
                     .AddBodyStatements(
-                        SyntaxFactory.ReturnStatement(
+                        SyntaxRepo.ReturnStatement(
                             SyntaxFactory.InvocationExpression(
                                 SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
@@ -154,7 +154,7 @@ internal class MethodWithFactory : IMethodFactory
             case ArrayTypeSyntax:
                 if (!argumentParameter.Modifiers.Any(i => i.IsKind(SyntaxKind.ParamsKeyword)))
                 {
-                    argumentParameter = argumentParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+                    argumentParameter = argumentParameter.AddModifiers(SyntaxKind.ParamsKeyword.WithSpace());
                 }
 
                 break;

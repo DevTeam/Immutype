@@ -15,15 +15,15 @@ internal class MethodsFactory : IMethodsFactory
     public IEnumerable<MemberDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IReadOnlyList<ParameterSyntax> parameters)
     {
         var thisParameter =
-            SyntaxFactory.Parameter(SyntaxFactory.Identifier("it"))
+            SyntaxRepo.Parameter(SyntaxFactory.Identifier("it"))
                 .WithType(targetType)
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
+                .AddModifiers(SyntaxKind.ThisKeyword.WithSpace());
 
         if (
             context.Options is CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp7_2 }
             && _syntaxNodeFactory.IsReadonlyType(context.Syntax))
         {
-            thisParameter = thisParameter.AddModifiers(SyntaxFactory.Token(SyntaxKind.InKeyword));
+            thisParameter = thisParameter.AddModifiers(SyntaxKind.InKeyword.WithSpace());
         }
 
         return
