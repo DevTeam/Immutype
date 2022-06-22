@@ -6,6 +6,8 @@ namespace Immutype
     [Generator]
     public class SourceGenerator : ISourceGenerator
     {
+        private static readonly Composition Composition = new();
+        
         public void Initialize(GeneratorInitializationContext context) { }
 
         public void Execute(GeneratorExecutionContext context)
@@ -17,18 +19,17 @@ namespace Immutype
 
             if (!(context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.ImmutypeAPI", out var valueStr) && bool.TryParse(valueStr, out var value) && value == false))
             {
-                foreach (var source in Composer.ResolveIComponentsBuilder().Build(context.CancellationToken))
+                foreach (var source in Composition.ComponentsBuilder.Build(context.CancellationToken))
                 {
                     context.AddSource(source.HintName, source.Code);
                 }
             }
 
-            var sourceBuilder = Composer.ResolveISourceBuilder();
             foreach (var tree in context.Compilation.SyntaxTrees)
             {
                 var semanticModel = context.Compilation.GetSemanticModel(tree);
                 var generationContext = new GenerationContext<SyntaxNode>(context.ParseOptions, context.Compilation, semanticModel, tree.GetRoot(), context.CancellationToken);
-                foreach (var source in sourceBuilder.Build(generationContext))
+                foreach (var source in Composition.SourceBuilder.Build(generationContext))
                 {
                     context.AddSource(source.HintName, source.Code);
                 }

@@ -53,13 +53,14 @@ public static class TestExtensions
             .AddSyntaxTrees(additionalCode);
 
         var generatedSources = new List<Source>();
-        generatedSources.AddRange(Composer.ResolveIComponentsBuilder().Build(CancellationToken.None));
+        var composition = new Composition();
+        generatedSources.AddRange(composition.ComponentsBuilder.Build(CancellationToken.None));
         foreach (var tree in compilation.SyntaxTrees)
         {
             var semanticModel = compilation.GetSemanticModel(tree);
             var root = tree.GetRoot();
             var context = new GenerationContext<SyntaxNode>(parseOptions, compilation, semanticModel, root, CancellationToken.None);
-            generatedSources.AddRange(Composer.ResolveISourceBuilder().Build(context));
+            generatedSources.AddRange(composition.SourceBuilder.Build(context));
         }
 
         generatedCode = string.Join(Environment.NewLine, generatedSources.Select((src, index) => $"Generated {index + 1}" + Environment.NewLine + Environment.NewLine + src.Code));

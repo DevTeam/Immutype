@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <SignAssembly>True</SignAssembly>
         <AssemblyOriginatorKeyFile>..\DevTeam.snk</AssemblyOriginatorKeyFile>
         <IsPackable>false</IsPackable>
@@ -13,13 +13,13 @@
     <ItemGroup>
         <CompilerVisibleProperty Include="ImmutypeAPI" />
         <ProjectReference Include="..\Immutype\Immutype.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-        <PackageReference Include="xunit" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+        <PackageReference Include="xunit" Version="2.6.5" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Shouldly" Version="4.0.3" />
+        <PackageReference Include="Shouldly" Version="4.2.1" />
         <None Update="README_TEMPLATE.md">
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
