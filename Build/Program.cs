@@ -37,24 +37,24 @@ foreach (var @case in cases)
         ("version", nuGetVersion.ToString())
     };
 
-    Assertion.Succeed(
-        new DotNetClean()
-            .WithConfiguration(configuration)
-            .WithProps(props)
-            .Build());
+    new DotNetClean()
+        .WithConfiguration(configuration)
+        .WithProps(props)
+        .Build()
+        .Succeed();
 
-    Assertion.Succeed(
-        new DotNetTest()
-            .WithConfiguration(configuration)
-            .WithProps(props)
-            .Build());
+    new DotNetTest()
+        .WithConfiguration(configuration)
+        .WithProps(props)
+        .Build()
+        .Succeed();
 
-    Assertion.Succeed(
-        new DotNetPack()
-            .WithConfiguration(configuration)
-            .WithNoBuild(true)
-            .WithProps(props)
-            .Build());
+    new DotNetPack()
+        .WithConfiguration(configuration)
+        .WithNoBuild(true)
+        .WithProps(props)
+        .Build()
+        .Succeed();
 
     packages.Add(Path.Combine(output, $"roslyn{@case.AnalyzerRoslynVersion}", $"Immutype.{nuGetVersion}.nupkg"));
 }
@@ -68,13 +68,12 @@ teamCityWriter.PublishArtifact($"{package} => .");
 
 if (!string.IsNullOrWhiteSpace(apiKey) && nuGetVersion.Release != "dev")
 {
-    Assertion.Succeed(
-        new DotNetNuGetPush()
-            .WithApiKey(apiKey)
-            .WithSources("https://api.nuget.org/v3/index.json")
-            .WithPackage(package)
-            .Run(),
-        $"Pushing {Path.GetFileName(package)}");
+    new DotNetNuGetPush()
+        .WithApiKey(apiKey)
+        .WithSources("https://api.nuget.org/v3/index.json")
+        .WithPackage(package)
+        .Run().
+        Succeed($"Pushing {Path.GetFileName(package)}");
 }
 
 WriteLine($"Package version: {nuGetVersion}", Color.Highlighted);

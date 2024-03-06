@@ -12,13 +12,18 @@ internal partial class Composition
 {
     private static void Setup() => DI.Setup(nameof(Composition))
         .DefaultLifetime(Lifetime.PerBlock)
+        
+        .Root<ISourceBuilder>("SourceBuilder")
+        .Root<IComponentsBuilder>("ComponentsBuilder")
+        .Root<ITypeSyntaxFilter>("SyntaxFilter")
+        
         .Bind<ImmutableArray<TT>>()
             .To<ImmutableArray<TT>>(ctx =>
             {
                 ctx.Inject(out TT[] arr);
                 return ImmutableArray.Create(arr);
             })
-        .Bind<ISourceBuilder>().To<SourceBuilder>().Root<ISourceBuilder>("SourceBuilder")
+        .Bind<ISourceBuilder>().To<SourceBuilder>()
         .Bind<ISyntaxNodeFactory>().To<SyntaxNodeFactory>()
         .Bind<INameService>().To<NameService>()
         .Bind<IUnitFactory>().To<ExtensionsFactory>()
@@ -29,6 +34,6 @@ internal partial class Composition
         .Bind<ICommentsGenerator>().To<CommentsGenerator>()
     
         .DefaultLifetime(Lifetime.Singleton)
-        .Bind<IComponentsBuilder>().To<ComponentsBuilder>().Root<IComponentsBuilder>("ComponentsBuilder")
-        .Bind<ITypeSyntaxFilter>().To<TypeSyntaxFilter>().Root<ITypeSyntaxFilter>("SyntaxFilter");
+        .Bind<IComponentsBuilder>().To<ComponentsBuilder>()
+        .Bind<ITypeSyntaxFilter>().To<TypeSyntaxFilter>();
 }
