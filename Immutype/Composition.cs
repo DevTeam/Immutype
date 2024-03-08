@@ -17,23 +17,23 @@ internal partial class Composition
         .Root<IComponentsBuilder>("ComponentsBuilder")
         .Root<ITypeSyntaxFilter>("SyntaxFilter")
         
-        .Bind<ImmutableArray<TT>>()
+        .Bind()
             .To<ImmutableArray<TT>>(ctx =>
             {
                 ctx.Inject(out TT[] arr);
                 return ImmutableArray.Create(arr);
             })
-        .Bind<ISourceBuilder>().To<SourceBuilder>()
-        .Bind<ISyntaxNodeFactory>().To<SyntaxNodeFactory>()
-        .Bind<INameService>().To<NameService>()
-        .Bind<IUnitFactory>().To<ExtensionsFactory>()
-        .Bind<IMethodsFactory>().To<MethodsFactory>()
-        .Bind<IDataContainerFactory>().To<DataContainerFactory>()
-        .Bind<IMethodFactory>(typeof(MethodWithFactory)).To<MethodWithFactory>()
-        .Bind<IMethodFactory>(typeof(MethodAddRemoveFactory)).To<MethodAddRemoveFactory>()
-        .Bind<ICommentsGenerator>().To<CommentsGenerator>()
+        .Bind().To<SourceBuilder>()
+        .Bind().To<SyntaxNodeFactory>()
+        .Bind().To<NameService>()
+        .Bind().To<ExtensionsFactory>()
+        .Bind().To<MethodsFactory>()
+        .Bind().To<DataContainerFactory>()
+        .Bind(Tag.Type).To<MethodWithFactory>()
+        .Bind(Tag.Type).To<MethodAddRemoveFactory>()
+        .Bind().To<CommentsGenerator>()
     
         .DefaultLifetime(Lifetime.Singleton)
-        .Bind<IComponentsBuilder>().To<ComponentsBuilder>()
-        .Bind<ITypeSyntaxFilter>().To<TypeSyntaxFilter>();
+        .Bind().To<ComponentsBuilder>()
+        .Bind().To<TypeSyntaxFilter>();
 }
