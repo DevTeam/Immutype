@@ -46,7 +46,7 @@ internal class MethodWithFactory : IMethodFactory
         var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
         var isArrayParam = argumentParameter.Type is ArrayTypeSyntax;
         var isCollectionParam = !AreEqu(argumentParameter, newArgumentParameter) || isArrayParam;
-        if (isArrayParam && argumentParameter.Modifiers.All(i => i.Kind() != SyntaxKind.ParamsKeyword))
+        if (isArrayParam && argumentParameter.Modifiers.All(i => !i.IsKind(SyntaxKind.ParamsKeyword)))
         {
             argumentParameter = argumentParameter.AddModifiers(SyntaxKind.ParamsKeyword.WithSpace());
         }
