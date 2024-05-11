@@ -102,7 +102,7 @@ static class Property
 
 static class Assertion
 {
-    public static bool Succeed(this int? exitCode, string shortName)
+    public static bool Succeed(int? exitCode, string shortName)
     {
         if (exitCode == 0)
         {
@@ -114,7 +114,7 @@ static class Assertion
         return false;
     }
 
-    public static async Task<bool> Succeed(this Task<int?> exitCodeTask, string shortName) =>
+    public static async Task<bool> Succeed(Task<int?> exitCodeTask, string shortName) =>
         Succeed(await exitCodeTask, shortName);
 
     private static bool CheckBuildResult(IBuildResult result)
@@ -136,7 +136,7 @@ static class Assertion
         return false;
     }
 
-    public static void Succeed(this IBuildResult result)
+    public static void Succeed(IBuildResult result)
     {
         if (!CheckBuildResult(result))
         {
@@ -144,7 +144,7 @@ static class Assertion
         }
     }
 
-    public static async Task<bool> Succeed(this Task<IBuildResult> resultTask)
+    public static async Task<bool> Succeed(Task<IBuildResult> resultTask)
     {
         if (CheckBuildResult(await resultTask))
         {

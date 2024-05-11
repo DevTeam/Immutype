@@ -6,15 +6,14 @@ using NuGet.Versioning;
 
 // ReSharper disable ArrangeTypeModifiers
 
-var cases = new[]
-{
-    new Case("3.8", "3.8.0"),
-    new Case("4.0", "4.0.1")
-};
-
 const string solutionFile = "Immutype.sln";
 const string configuration = "Release";
 const string packageId = "Immutype";
+Settings[] buildSettings = 
+[
+    new Settings("3.8", "3.8.0"),
+    new Settings("4.0", "4.0.1")
+];
 
 var currentDir = Environment.CurrentDirectory;
 if (!File.Exists(solutionFile))
@@ -23,69 +22,67 @@ if (!File.Exists(solutionFile))
     return 1;
 }
 
+var outputDir = Path.Combine("Immutype", "Bin", configuration);
 var defaultVersion = NuGetVersion.Parse(Property.Get("version", "1.0.0-dev", Tools.UnderTeamCity));
-var apiKey = Property.Get("apiKey", "");
-
 var nuGetVersion = Version.GetNext(new NuGetRestoreSettings(packageId).WithPackageType(NuGetPackageType.Tool), defaultVersion);
-
-var output = Path.Combine("Immutype", "Bin", configuration);
 var packages = new List<string>();
-foreach (var @case in cases)
+foreach (var settings in buildSettings)
 {
-    var props = new List<(string name, string value)>(@case.Props)
-    {
-        ("version", nuGetVersion.ToString())
-    };
+    var props = settings.CreateBuildProps(nuGetVersion);
+    Assertion.Succeed(
+        new DotNetClean()
+            .WithConfiguration(configuration)
+            .WithProps(props)
+            .Build());
 
-    new DotNetClean()
-        .WithConfiguration(configuration)
-        .WithProps(props)
-        .Build()
-        .Succeed();
+    Assertion.Succeed(
+        new DotNetTest()
+            .WithConfiguration(configuration)
+            .WithProps(props)
+            .Build());
 
-    new DotNetTest()
-        .WithConfiguration(configuration)
-        .WithProps(props)
-        .Build()
-        .Succeed();
-
-    new DotNetPack()
-        .WithConfiguration(configuration)
-        .WithNoBuild(true)
-        .WithProps(props)
-        .Build()
-        .Succeed();
-
-    packages.Add(Path.Combine(output, $"roslyn{@case.AnalyzerRoslynVersion}", $"Immutype.{nuGetVersion}.nupkg"));
+    var packagePath = Path.GetFullPath(Path.Combine(outputDir, $"roslyn{settings.AnalyzerRoslynVersion}"));
+    Assertion.Succeed(
+        new DotNetPack()
+            .WithConfiguration(configuration)
+            .WithNoBuild(true)
+            .WithOutput(packagePath)
+            .WithProps(props)
+            .Build());
+    
+    var package = Path.Combine(packagePath, $"Immutype.{nuGetVersion}.nupkg");
+    packages.Add(package);
 }
 
-var package = Path.Combine(output, $"Immutype.{nuGetVersion}.nupkg");
-Tools.MergeNuGetPackages(packages, package);
+var mergedPackage = Path.GetFullPath(Path.Combine(outputDir, $"Immutype.{nuGetVersion}.nupkg"));
+Tools.MergeNuGetPackages(packages, mergedPackage);
 
 Info("Publishing artifacts.");
 var teamCityWriter = GetService<ITeamCityWriter>();
-teamCityWriter.PublishArtifact($"{package} => .");
+teamCityWriter.PublishArtifact($"{mergedPackage} => .");
 
+var apiKey = Property.Get("apiKey", "");
 if (!string.IsNullOrWhiteSpace(apiKey) && nuGetVersion.Release != "dev")
 {
-    new DotNetNuGetPush()
-        .WithApiKey(apiKey)
-        .WithSources("https://api.nuget.org/v3/index.json")
-        .WithPackage(package)
-        .Run().
-        Succeed($"Pushing {Path.GetFileName(package)}");
+    Assertion.Succeed(
+        new DotNetNuGetPush()
+            .WithApiKey(apiKey)
+            .WithSources("https://api.nuget.org/v3/index.json")
+            .WithPackage(mergedPackage)
+            .Run(),
+        $"Pushing {Path.GetFileName(mergedPackage)}");
 }
 
 WriteLine($"Package version: {nuGetVersion}", Color.Highlighted);
 
 return 0;
 
-record Case(string AnalyzerRoslynVersion, string AnalyzerRoslynPackageVersion)
+record Settings(string AnalyzerRoslynVersion, string AnalyzerRoslynPackageVersion)
 {
-    public IEnumerable<(string name, string value)> Props =>
-        new[]
-        {
-            ("AnalyzerRoslynVersion", AnalyzerRoslynVersion),
-            ("AnalyzerRoslynPackageVersion", AnalyzerRoslynPackageVersion)
-        };
+    public (string name, string value)[] CreateBuildProps(NuGetVersion nuGetVersion) =>
+    [
+        ("AnalyzerRoslynVersion", AnalyzerRoslynVersion),
+        ("AnalyzerRoslynPackageVersion", AnalyzerRoslynPackageVersion),
+        ("version", nuGetVersion.ToString())
+    ];
 }
