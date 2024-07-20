@@ -16,12 +16,16 @@ namespace Immutype
             var composition = new Composition();
             context.RegisterSourceOutput(context.AnalyzerConfigOptionsProvider, (ctx, options) =>
             {
-                if (!(options.GlobalOptions.TryGetValue("build_property.ImmutypeAPI", out var valueStr) && bool.TryParse(valueStr, out var value) && value == false))
+                if (options.GlobalOptions.TryGetValue("build_property.ImmutypeAPI", out var valueStr)
+                    && bool.TryParse(valueStr, out var value)
+                    && value == false)
                 {
-                    foreach (var source in composition.ComponentsBuilder.Build(ctx.CancellationToken))
-                    {
-                        ctx.AddSource(source.HintName, source.Code);
-                    }
+                    return;
+                }
+                
+                foreach (var source in composition.ComponentsBuilder.Build(ctx.CancellationToken))
+                {
+                    ctx.AddSource(source.HintName, source.Code);
                 }
             });
 

@@ -51,7 +51,6 @@ internal class MethodWithFactory : IMethodFactory
             argumentParameter = argumentParameter.AddModifiers(SyntaxKind.ParamsKeyword.WithSpace());
         }
         
-        var variants = new List<ParameterSyntax>();
         if (!isCollectionParam || argumentParameter.Type is not NullableTypeSyntax)
         {
             yield return _commentsGenerator.AddComments(

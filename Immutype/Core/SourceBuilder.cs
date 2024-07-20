@@ -49,6 +49,6 @@ internal class SourceBuilder : ISourceBuilder
 
         return parameters != default
             ? _unitFactory.Create(context, parameters)
-            : Enumerable.Empty<Source>();
+            : [];
     }
 }

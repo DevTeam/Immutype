@@ -11,7 +11,7 @@ public class RunOptions
 {
     public string Statements = "System.Console.WriteLine(Composer.Resolve<CompositionRoot>().Value);";
 
-    public readonly List<string> AdditionalCode = new();
+    public readonly List<string> AdditionalCode = [];
 
     public LanguageVersion LanguageVersion = LanguageVersion.Latest;
 

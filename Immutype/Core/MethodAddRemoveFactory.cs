@@ -210,15 +210,13 @@ internal class MethodAddRemoveFactory : IMethodFactory
                             result,
                             SyntaxFactory.IdentifierName(nameof(Enumerable.ToArray))));
                 }
-                else
-                {
-                    return SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName("System.Array"),
-                            SyntaxFactory.GenericName(nameof(Enumerable.Empty))
-                                .AddTypeArgumentListArguments(arrayTypeSyntax.ElementType)));
-                }
+
+                return SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("System.Array"),
+                        SyntaxFactory.GenericName(nameof(Enumerable.Empty))
+                            .AddTypeArgumentListArguments(arrayTypeSyntax.ElementType)));
         }
 
         return result!;

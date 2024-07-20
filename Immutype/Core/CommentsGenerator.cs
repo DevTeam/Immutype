@@ -25,32 +25,31 @@ public class CommentsGenerator : ICommentsGenerator
                 select str)
             .ToArray();
 
-        if (simpleComments.Any())
+        if (!simpleComments.Any())
         {
-            var lines = new List<string>();
-            lines.Add("/// <summary>");
-            for (var i = 0; i < simpleComments.Length; i++)
-            {
-                var comment = simpleComments[i];
-                if (i == 0)
-                {
-                    comment = $"{title} {comment}";
-                }
-
-                lines.Add($"/// {comment}");
-            }
-            
-            lines.Add("/// </summary>");
-            lines.Add("/// <param name=\"it\">The original instance.</param>");
-            if (!string.IsNullOrWhiteSpace(targetComment))
-            {
-                lines.Add($"/// <param name=\"{parameter.Identifier.Text}\">{targetComment}</param>");
-            }
-
-            lines.Add("/// <returns>The modified copy of the original instance.</returns>");
-            return target.WithLeadingTrivia(lines.SelectMany(s => new List<SyntaxTrivia>() { SyntaxFactory.CarriageReturn, SyntaxFactory.LineFeed, SyntaxFactory.Comment(s)}));
+            return target;
         }
         
-        return target;
+        var lines = new List<string> { "/// <summary>" };
+        for (var i = 0; i < simpleComments.Length; i++)
+        {
+            var comment = simpleComments[i];
+            if (i == 0)
+            {
+                comment = $"{title} {comment}";
+            }
+
+            lines.Add($"/// {comment}");
+        }
+            
+        lines.Add("/// </summary>");
+        lines.Add("/// <param name=\"it\">The original instance.</param>");
+        if (!string.IsNullOrWhiteSpace(targetComment))
+        {
+            lines.Add($"/// <param name=\"{parameter.Identifier.Text}\">{targetComment}</param>");
+        }
+
+        lines.Add("/// <returns>The modified copy of the original instance.</returns>");
+        return target.WithLeadingTrivia(lines.SelectMany(s => new List<SyntaxTrivia> { SyntaxFactory.CarriageReturn, SyntaxFactory.LineFeed, SyntaxFactory.Comment(s)}));
     }
 }

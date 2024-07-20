@@ -44,7 +44,7 @@ public static class TestExtensions
             using Immutype;
             using Sample;
 
-            namespace Sample { public class Program { public static void Main() {" + curOptions.Statements + @"} } }";
+            namespace Sample { public class Program { public static void Main() {" + curOptions.Statements + "} } }";
 
         var additionalCode = curOptions.AdditionalCode.Select(code => CSharpSyntaxTree.ParseText(code, parseOptions)).ToArray();
 
@@ -55,6 +55,7 @@ public static class TestExtensions
         var generatedSources = new List<Source>();
         var composition = new Composition();
         generatedSources.AddRange(composition.ComponentsBuilder.Build(CancellationToken.None));
+        // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
         foreach (var tree in compilation.SyntaxTrees)
         {
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -156,7 +157,7 @@ public static class TestExtensions
                 select GetErrorMessage(diagnostic))
             .ToList();
 
-        Assert.False(errors.Any(), string.Join(Environment.NewLine + Environment.NewLine, errors) + Environment.NewLine + Environment.NewLine + generatedCode);
+        Assert.False(errors.Count != 0, string.Join(Environment.NewLine + Environment.NewLine, errors) + Environment.NewLine + Environment.NewLine + generatedCode);
         return compilation;
     }
 

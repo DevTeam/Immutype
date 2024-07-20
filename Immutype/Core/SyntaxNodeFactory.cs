@@ -6,15 +6,15 @@ using System.Runtime.CompilerServices;
 internal class SyntaxNodeFactory : ISyntaxNodeFactory
 {
     private static readonly AttributeSyntax AggressiveInliningAttr = SyntaxFactory.Attribute(
-        SyntaxFactory.IdentifierName(typeof(MethodImplAttribute).FullName),
+        SyntaxFactory.IdentifierName(typeof(MethodImplAttribute).FullName ?? string.Empty),
         SyntaxFactory.AttributeArgumentList()
             .AddArguments(
                 SyntaxFactory.AttributeArgument(
                     SyntaxFactory.CastExpression(
-                        SyntaxFactory.ParseTypeName(typeof(MethodImplOptions).FullName),
+                        SyntaxFactory.ParseTypeName(typeof(MethodImplOptions).FullName ?? string.Empty),
                         SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0x100))))));
 
-    private static readonly AttributeSyntax PureAttr = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(typeof(PureAttribute).FullName));
+    private static readonly AttributeSyntax PureAttr = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(typeof(PureAttribute).FullName ?? string.Empty));
 
     public bool IsValueType(TypeDeclarationSyntax typeDeclarationSyntax) =>
         typeDeclarationSyntax switch
@@ -117,15 +117,11 @@ internal class SyntaxNodeFactory : ISyntaxNodeFactory
         }
 
         var typeName = type.ToString();
-        switch (typeName)
+        return typeName switch
         {
-            case "string":
-            case "object":
-                return true;
-
-            default:
-                return context.Compilation.GetTypeByMetadataName(typeName)?.IsReferenceType ?? false;
-        }
+            "string" or "object" => true,
+            _ => context.Compilation.GetTypeByMetadataName(typeName)?.IsReferenceType ?? false
+        };
     }
 
     private SyntaxToken GetIdentifier(TypeDeclarationSyntax owner, SyntaxToken identifier)

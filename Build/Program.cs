@@ -29,26 +29,27 @@ var packages = new List<string>();
 foreach (var settings in buildSettings)
 {
     var props = settings.CreateBuildProps(nuGetVersion);
-    Assertion.Succeed(
-        new DotNetClean()
-            .WithConfiguration(configuration)
-            .WithProps(props)
-            .Build());
+    
+    new DotNetClean()
+        .WithConfiguration(configuration)
+        .WithProps(props)
+        .Build()
+        .EnsureSuccess();
 
-    Assertion.Succeed(
-        new DotNetTest()
-            .WithConfiguration(configuration)
-            .WithProps(props)
-            .Build());
+    new DotNetTest()
+        .WithConfiguration(configuration)
+        .WithProps(props)
+        .Build()
+        .EnsureSuccess();
 
     var packagePath = Path.GetFullPath(Path.Combine(outputDir, $"roslyn{settings.AnalyzerRoslynVersion}"));
-    Assertion.Succeed(
-        new DotNetPack()
-            .WithConfiguration(configuration)
-            .WithNoBuild(true)
-            .WithOutput(packagePath)
-            .WithProps(props)
-            .Build());
+    new DotNetPack()
+        .WithConfiguration(configuration)
+        .WithNoBuild(true)
+        .WithOutput(packagePath)
+        .WithProps(props)
+        .Build()
+        .EnsureSuccess();
     
     var package = Path.Combine(packagePath, $"Immutype.{nuGetVersion}.nupkg");
     packages.Add(package);
@@ -64,13 +65,13 @@ teamCityWriter.PublishArtifact($"{mergedPackage} => .");
 var apiKey = Property.Get("apiKey", "");
 if (!string.IsNullOrWhiteSpace(apiKey) && nuGetVersion.Release != "dev")
 {
-    Assertion.Succeed(
-        new DotNetNuGetPush()
-            .WithApiKey(apiKey)
-            .WithSources("https://api.nuget.org/v3/index.json")
-            .WithPackage(mergedPackage)
-            .Run(),
-        $"Pushing {Path.GetFileName(mergedPackage)}");
+    new DotNetNuGetPush()
+        .WithShortName($"Pushing {Path.GetFileName(mergedPackage)}")
+        .WithApiKey(apiKey)
+        .WithSources("https://api.nuget.org/v3/index.json")
+        .WithPackage(mergedPackage)
+        .Run()
+        .EnsureSuccess();
 }
 
 WriteLine($"Package version: {nuGetVersion}", Color.Highlighted);

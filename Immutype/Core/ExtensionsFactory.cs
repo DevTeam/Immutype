@@ -9,17 +9,12 @@ namespace Immutype.Core;
     using NamespaceType = BaseNamespaceDeclarationSyntax;
 #endif
 
-internal class ExtensionsFactory : IUnitFactory
+internal class ExtensionsFactory(IMethodsFactory methodsFactory) : IUnitFactory
 {
     private static readonly UsingDirectiveSyntax[] AdditionalUsings =
-    {
+    [
         SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic").WithSpace()), SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq").WithSpace())
-    };
-
-    private readonly IMethodsFactory _methodsFactory;
-
-    public ExtensionsFactory(IMethodsFactory methodsFactory) =>
-        _methodsFactory = methodsFactory;
+    ];
 
     public IEnumerable<Source> Create(GenerationContext<TypeDeclarationSyntax> context, IReadOnlyList<ParameterSyntax> parameters)
     {
@@ -28,7 +23,7 @@ internal class ExtensionsFactory : IUnitFactory
 #if ROSLYN38
             .OfType<NamespaceDeclarationSyntax>()
 #else
-            .OfType<BaseNamespaceDeclarationSyntax>()
+            .OfType<NamespaceType>()
 #endif
             .Reverse()
             .ToArray();
@@ -45,7 +40,7 @@ internal class ExtensionsFactory : IUnitFactory
         var extensionsClass = SyntaxRepo.ClassDeclaration(className)
             .AddModifiers(typeDeclarationSyntax.Modifiers.Where(i => !i.IsKind(SyntaxKind.ReadOnlyKeyword) && !i.IsKind(SyntaxKind.PartialKeyword)).Select(i => i.WithSpace()).ToArray())
             .AddModifiers(SyntaxKind.StaticKeyword.WithSpace(), SyntaxKind.PartialKeyword.WithSpace())
-            .AddMembers(_methodsFactory.Create(context, typeSyntax, parameters).Select(i => i.WithNewLine().WithNewLine()).ToArray());
+            .AddMembers(methodsFactory.Create(context, typeSyntax, parameters).Select(i => i.WithNewLine().WithNewLine()).ToArray());
 
         extensionsClass = TryAddAttribute(context.SemanticModel, extensionsClass, "System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage");
 
@@ -64,7 +59,7 @@ internal class ExtensionsFactory : IUnitFactory
         NamespaceType? rootNamespace = default;
         foreach (var ns in namespaces)
         {
-            var nextNs = ns.WithMembers(new SyntaxList<MemberDeclarationSyntax>(Enumerable.Empty<MemberDeclarationSyntax>()));
+            var nextNs = ns.WithMembers(new SyntaxList<MemberDeclarationSyntax>([]));
             rootNamespace = rootNamespace == default
                 ? nextNs.AddMembers(members).AddUsings(GetUsings(nextNs.Usings, additionalUsings))
                 : nextNs.AddMembers(rootNamespace);
@@ -72,7 +67,7 @@ internal class ExtensionsFactory : IUnitFactory
 
         var baseCompilationUnit = targetNode.Ancestors().OfType<CompilationUnitSyntax>().FirstOrDefault();
         var rootCompilationUnit = (baseCompilationUnit ?? SyntaxFactory.CompilationUnit())
-            .WithMembers(new SyntaxList<MemberDeclarationSyntax>(Enumerable.Empty<MemberDeclarationSyntax>()));
+            .WithMembers(new SyntaxList<MemberDeclarationSyntax>([]));
 
         return rootNamespace != default
             ? rootCompilationUnit.AddMembers(rootNamespace)
