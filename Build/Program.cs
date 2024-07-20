@@ -23,7 +23,7 @@ if (!File.Exists(solutionFile))
 }
 
 var outputDir = Path.Combine("Immutype", "Bin", configuration);
-var defaultVersion = NuGetVersion.Parse(Property.Get("version", "1.0.0-dev", Tools.UnderTeamCity));
+var defaultVersion = NuGetVersion.Parse(Props.Get("version", "1.0.0-dev"));
 var nuGetVersion = Version.GetNext(new NuGetRestoreSettings(packageId).WithPackageType(NuGetPackageType.Tool), defaultVersion);
 var packages = new List<string>();
 foreach (var settings in buildSettings)
@@ -62,7 +62,7 @@ Info("Publishing artifacts.");
 var teamCityWriter = GetService<ITeamCityWriter>();
 teamCityWriter.PublishArtifact($"{mergedPackage} => .");
 
-var apiKey = Property.Get("apiKey", "");
+var apiKey = Props.Get("apiKey", "");
 if (!string.IsNullOrWhiteSpace(apiKey) && nuGetVersion.Release != "dev")
 {
     new DotNetNuGetPush()

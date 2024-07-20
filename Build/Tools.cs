@@ -75,27 +75,3 @@ static class Version
             .Max() ?? defaultVersion;
     }
 }
-
-static class Property
-{
-    public static string Get(string name, string defaultProp, bool showWarning = false)
-    {
-        if (Props.TryGetValue(name, out var prop) && !string.IsNullOrWhiteSpace(prop))
-        {
-            WriteLine($"{name}: {prop}", Color.Highlighted);
-            return prop;
-        }
-
-        var message = $"The property \"{name}\" was not defined, the default value \"{defaultProp}\" was used.";
-        if (showWarning)
-        {
-            Warning(message);
-        }
-        else
-        {
-            Info(message);
-        }
-
-        return defaultProp;
-    }
-}

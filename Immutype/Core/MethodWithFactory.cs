@@ -84,7 +84,7 @@ internal class MethodWithFactory : IMethodFactory
             yield return _commentsGenerator.AddComments(
                 $"Clear <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
-                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
+                "",
                 _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Clear{name}" + targetDeclaration.TypeParameterList)
                     .AddParameterListParameters(thisParameter)
                     .WithConstraintClauses(targetDeclaration.ConstraintClauses)
