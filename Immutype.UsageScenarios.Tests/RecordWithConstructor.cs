@@ -4,6 +4,7 @@
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable CheckNamespace
 // ReSharper disable ConvertToPrimaryConstructor
+// ReSharper disable ArrangeNamespaceBody
 namespace Immutype.UsageScenarios.Tests.RecordWithConstructor
 {
     using System.Collections.Generic;

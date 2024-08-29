@@ -4,6 +4,8 @@
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable CheckNamespace
 // ReSharper disable UnusedParameter.Local
+// ReSharper disable ArrangeNamespaceBody
+// ReSharper disable DefaultStructEqualityIsUsed.Global
 namespace Immutype.UsageScenarios.Tests.ExplicitConstructorChoice
 {
     using System.Collections.Immutable;
@@ -44,7 +46,7 @@ namespace Immutype.UsageScenarios.Tests.ExplicitConstructorChoice
             Age = age;
             Friends = friends ?? ImmutableList<Person>.Empty;
         }
-    };
+    }
 
     public class ExplicitConstructorChoice
     {

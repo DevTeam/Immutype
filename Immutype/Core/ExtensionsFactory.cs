@@ -4,9 +4,8 @@
 namespace Immutype.Core;
 
 #if ROSLYN38
-    using NamespaceType = NamespaceDeclarationSyntax;
+using NamespaceType = NamespaceDeclarationSyntax;
 #else
-using System.IO;
 using NamespaceType = BaseNamespaceDeclarationSyntax;
 #endif
 
@@ -35,10 +34,9 @@ internal class ExtensionsFactory(
 
         var typeName =
             string.Join(".", ns.Select(i => i.Name.ToString())
-                .Concat(new[]
-                {
+                .Concat([
                     typeDeclarationSyntax.Identifier.Text + typeDeclarationSyntax.TypeParameterList
-                }));
+                ]));
 
         var typeSyntax = SyntaxFactory.ParseName(typeName);
         var className = $"{typeDeclarationSyntax.Identifier.Text}Extensions";
@@ -61,10 +59,9 @@ internal class ExtensionsFactory(
         
         code.AppendLine(CreateRootNode(typeDeclarationSyntax, AdditionalUsings, extensionsClass).ToFullString());
         code.AppendLine("#pragma warning restore");
-        var fileName = string.Join(".", ns.Select(i => i.Name.ToString()).Concat(new[]
-        {
+        var fileName = string.Join(".", ns.Select(i => i.Name.ToString()).Concat([
             typeDeclarationSyntax.Identifier.Text
-        }));
+        ]));
 
         yield return new Source($"{fileName}.g", SourceText.From(code.ToString(), Encoding.UTF8));
     }

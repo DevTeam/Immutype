@@ -6,16 +6,16 @@ internal static class SyntaxRepo
         SyntaxFactory.Token(SyntaxFactory.TriviaList(), syntaxKind, SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
     
     public static SyntaxToken WithSpace(this SyntaxToken syntaxToken) =>
-        syntaxToken.WithLeadingTrivia(syntaxToken.LeadingTrivia.Concat(new []{SyntaxFactory.ElasticSpace}));
+        syntaxToken.WithLeadingTrivia(syntaxToken.LeadingTrivia.Concat([SyntaxFactory.ElasticSpace]));
 
     private static SyntaxToken WithNewLine(this SyntaxKind syntaxKind) =>
         SyntaxFactory.Token(SyntaxFactory.TriviaList(), syntaxKind, SyntaxFactory.TriviaList(SyntaxFactory.CarriageReturn, SyntaxFactory.LineFeed));
 
     public static TSyntax WithSpace<TSyntax>(this TSyntax node) where TSyntax : SyntaxNode => 
-        node.WithLeadingTrivia(node.GetLeadingTrivia().Concat(new []{SyntaxFactory.ElasticSpace}));
+        node.WithLeadingTrivia(node.GetLeadingTrivia().Concat([SyntaxFactory.ElasticSpace]));
 
     public static TSyntax WithNewLine<TSyntax>(this TSyntax node) where TSyntax : SyntaxNode =>
-        node.WithLeadingTrivia(node.GetLeadingTrivia().Concat(new []{SyntaxFactory.CarriageReturn, SyntaxFactory.LineFeed}));
+        node.WithLeadingTrivia(node.GetLeadingTrivia().Concat([SyntaxFactory.CarriageReturn, SyntaxFactory.LineFeed]));
 
     public static ObjectCreationExpressionSyntax ObjectCreationExpression(TypeSyntax type, ArgumentListSyntax? argumentList = default, InitializerExpressionSyntax? initializer = default)
         => SyntaxFactory.ObjectCreationExpression(SyntaxKind.NewKeyword.WithSpace(), type, argumentList, initializer);

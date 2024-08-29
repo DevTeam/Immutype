@@ -4,6 +4,7 @@
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable CheckNamespace
 // ReSharper disable NotAccessedPositionalProperty.Global
+// ReSharper disable ArrangeNamespaceBody
 namespace Immutype.UsageScenarios.Tests.GenericTypes
 {
     using System.Collections.Generic;

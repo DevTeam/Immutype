@@ -3,6 +3,8 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable CheckNamespace
+// ReSharper disable ArrangeNamespaceBody
+// ReSharper disable ArrangeNamespaceBody
 namespace Immutype.UsageScenarios.Tests.NullableCollection
 {
     using System.Collections.Generic;

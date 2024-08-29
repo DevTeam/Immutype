@@ -3,6 +3,8 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable CheckNamespace
+// ReSharper disable ArrangeNamespaceBody
+// ReSharper disable NotAccessedPositionalProperty.Global
 namespace Immutype.UsageScenarios.Tests.Clearing
 {
     using Shouldly;

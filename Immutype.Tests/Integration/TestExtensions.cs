@@ -36,15 +36,17 @@ public static class TestExtensions
         var curOptions = options ?? new RunOptions();
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(curOptions.LanguageVersion);
 
-        var hostCode = @"
-            using System;
-            using System.Collections.Generic;
-            using System.Collections.Immutable;
-            using System.Linq;
-            using Immutype;
-            using Sample;
-
-            namespace Sample { public class Program { public static void Main() {" + curOptions.Statements + "} } }";
+        var hostCode = """
+                       
+                                   using System;
+                                   using System.Collections.Generic;
+                                   using System.Collections.Immutable;
+                                   using System.Linq;
+                                   using Immutype;
+                                   using Sample;
+                       
+                                   namespace Sample { public class Program { public static void Main() {
+                       """ + curOptions.Statements + "} } }";
 
         var additionalCode = curOptions.AdditionalCode.Select(code => CSharpSyntaxTree.ParseText(code, parseOptions)).ToArray();
 
@@ -78,16 +80,18 @@ public static class TestExtensions
         var configPath = Path.ChangeExtension(tempFileName, "runtimeconfig.json");
         var runtime = RuntimeInformation.FrameworkDescription.Split(" ")[1];
         var dotnetVersion = $"{Environment.Version.Major}.{Environment.Version.Minor}";
-        var config = @"
-{
-  ""runtimeOptions"": {
-            ""tfm"": ""netV.V"",
-            ""framework"": {
-                ""name"": ""Microsoft.NETCore.App"",
-                ""version"": ""RUNTIME""
-            }
-        }
-}".Replace("V.V", dotnetVersion).Replace("RUNTIME", runtime);
+        var config = """
+
+                     {
+                       "runtimeOptions": {
+                                 "tfm": "netV.V",
+                                 "framework": {
+                                     "name": "Microsoft.NETCore.App",
+                                     "version": "RUNTIME"
+                                 }
+                             }
+                     }
+                     """.Replace("V.V", dotnetVersion).Replace("RUNTIME", runtime);
 
         try
         {
@@ -95,14 +99,6 @@ public static class TestExtensions
             File.WriteAllText(configPath, config);
             var result = compilation.Emit(assemblyPath);
             Assert.True(result.Success);
-
-            void OnOutputDataReceived(object sender, DataReceivedEventArgs args)
-            {
-                if (args.Data != null)
-                {
-                    output.Add(args.Data);
-                }
-            }
 
             var process = new Process
             {
@@ -134,6 +130,14 @@ public static class TestExtensions
             }
 
             return output;
+
+            void OnOutputDataReceived(object sender, DataReceivedEventArgs args)
+            {
+                if (args.Data != null)
+                {
+                    output.Add(args.Data);
+                }
+            }
         }
         finally
         {

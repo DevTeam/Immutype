@@ -13,27 +13,28 @@ public class CommentsTests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).WithValues(99, 66).values));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(
-                    // AbcComment
-                    IEnumerable<int> values);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(
+                                         // AbcComment
+                                         IEnumerable<int> values);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "99,66"
-        }, generatedCode);
+        ], generatedCode);
         
         generatedCode.Contains("/// Set <c>Values</c>. AbcComment").ShouldBeTrue();
         generatedCode.Contains("/// <param name=\"it\">The original instance.</param>").ShouldBeTrue();
@@ -48,25 +49,26 @@ public class CommentsTests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public record Rec(
-                    // AbcComment
-                    int val);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec(
+                                         // AbcComment
+                                         int val);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = 99 }"
-        }, generatedCode);
+        ], generatedCode);
         
         generatedCode.Contains("/// Set <c>Val</c>. AbcComment").ShouldBeTrue();
         generatedCode.Contains("<param name=\"it\">The original instance.</param>").ShouldBeTrue();
@@ -81,26 +83,27 @@ public class CommentsTests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public record Rec(
-                    // AbcComment
-                    // Xyz
-                    int val);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec(
+                                         // AbcComment
+                                         // Xyz
+                                         int val);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = 99 }"
-        }, generatedCode);
+        ], generatedCode);
         
         generatedCode.Contains("/// Set <c>Val</c>. AbcComment").ShouldBeTrue();
         generatedCode.Contains("/// Xyz").ShouldBeTrue();
@@ -116,28 +119,29 @@ public class CommentsTests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                /// <summary>
-                /// Som text
-                /// </summary>
-                /// <param name=""val"">AbcComment</param>                
-                public record Rec(
-                    int val);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     /// <summary>
+                                     /// Som text
+                                     /// </summary>
+                                     /// <param name="val">AbcComment</param>                
+                                     public record Rec(
+                                         int val);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = 99 }"
-        }, generatedCode);
+        ], generatedCode);
         
         generatedCode.Contains("/// Set <c>Val</c>. AbcComment").ShouldBeTrue();
         generatedCode.Contains("<param name=\"it\">The original instance.</param>").ShouldBeTrue();
@@ -152,29 +156,30 @@ public class CommentsTests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                /// <summary>
-                /// Som text
-                /// </summary>
-                /// <param name=""val"">AbcComment</param>                
-                public record Rec(
-                    // Xyz
-                    int val);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     /// <summary>
+                                     /// Som text
+                                     /// </summary>
+                                     /// <param name="val">AbcComment</param>                
+                                     public record Rec(
+                                         // Xyz
+                                         int val);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = 99 }"
-        }, generatedCode);
+        ], generatedCode);
         
         generatedCode.Contains("/// Set <c>Val</c>. AbcComment").ShouldBeTrue();
         generatedCode.Contains("/// Xyz").ShouldBeTrue();

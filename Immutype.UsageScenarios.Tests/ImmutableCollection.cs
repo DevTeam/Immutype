@@ -3,6 +3,8 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable CheckNamespace
+// ReSharper disable DefaultStructEqualityIsUsed.Global
+// ReSharper disable ArrangeNamespaceBody
 namespace Immutype.UsageScenarios.Tests.ImmutableCollection
 {
     using System.Collections.Immutable;
@@ -30,7 +32,7 @@ namespace Immutype.UsageScenarios.Tests.ImmutableCollection
             Age = age;
             Friends = friends ?? ImmutableList<Person>.Empty;
         }
-    };
+    }
 
     public class ImmutableCollection
     {

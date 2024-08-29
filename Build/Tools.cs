@@ -6,8 +6,6 @@ using NuGet.Versioning;
 
 static class Tools
 {
-    public static bool UnderTeamCity => Environment.GetEnvironmentVariable("TEAMCITY_VERSION") != default;
-    
     public static void MergeNuGetPackages(IEnumerable<string> mergingPackages, string targetPackage)
     {
         var targetDir = Path.GetDirectoryName(targetPackage);

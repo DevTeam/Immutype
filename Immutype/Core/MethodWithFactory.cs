@@ -1,5 +1,6 @@
 // ReSharper disable ConvertIfStatementToConditionalTernaryExpression
 // ReSharper disable InvertIf
+// ReSharper disable ClassNeverInstantiated.Global
 namespace Immutype.Core;
 
 internal class MethodWithFactory : IMethodFactory

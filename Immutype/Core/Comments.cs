@@ -1,4 +1,5 @@
-﻿namespace Immutype.Core;
+﻿// ReSharper disable ClassNeverInstantiated.Global
+namespace Immutype.Core;
 
 using System.IO;
 using System.Xml.Linq;

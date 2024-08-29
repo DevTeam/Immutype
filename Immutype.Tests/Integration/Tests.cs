@@ -13,23 +13,24 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec());";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.Target]
-                public record Rec();
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.Target]
+                                     public record Rec();
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { }"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -39,23 +40,24 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public record Rec(int val);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec(int val);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = 99 }"
-        }, generatedCode);
+        ], generatedCode);
     }
     
     [Fact]
@@ -65,23 +67,24 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public record Rec(int? val);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec(int? val);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = 99 }"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -91,28 +94,29 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(new GenericValue<int>()).WithVal(new GenericValue<int>()));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-
-                public class GenericValue<T>
-                {
-                    public override string ToString() => typeof(T).Name;
-                }
-                
-                [Immutype.TargetAttribute()]
-                public record Rec(GenericValue<int> val);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                     
+                                     public class GenericValue<T>
+                                     {
+                                         public override string ToString() => typeof(T).Name;
+                                     }
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec(GenericValue<int> val);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = Int32 }"
-        }, generatedCode);
+        ], generatedCode);
     }
 
 #if !ROSLYN38
@@ -123,23 +127,24 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.Target]
-                public record struct Rec(int val);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.Target]
+                                     public record struct Rec(int val);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = 99 }"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -149,21 +154,22 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample;
-            using System;
-            [Immutype.Target]
-            public record struct Rec(int val);
-            ".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample;
+                                 using System;
+                                 [Immutype.Target]
+                                 public record struct Rec(int val);
+                                 
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = 99 }"
-        }, generatedCode);
+        ], generatedCode);
     }
 #endif
 
@@ -174,31 +180,32 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99).Val);";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public record Rec
-                {
-                    public Rec(int val)
-                    {
-                        Val = val;
-                    }
-
-                    public int Val { get; }
-                }
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec
+                                     {
+                                         public Rec(int val)
+                                         {
+                                             Val = val;
+                                         }
+                     
+                                         public int Val { get; }
+                                     }
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "99"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -208,24 +215,25 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33, \"Abc\").WithVal(99).WithStr(\"Xyz\"));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using Immutype;
-                
-                [Target]
-                public record Rec(int val, string str);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using Immutype;
+                                     
+                                     [Target]
+                                     public record Rec(int val, string str);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = 99, str = Xyz }"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -235,25 +243,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).WithVals(99, 66).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IEnumerable<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "99,66"
-        }, generatedCode);
+        ], generatedCode);
     }
     
     [Fact]
@@ -264,25 +273,26 @@ public class Tests
                                   "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).WithVals(list).vals == list));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IEnumerable<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "True"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -292,25 +302,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IEnumerable<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
     
     [Fact]
@@ -320,25 +331,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(Enumerable.Repeat(99, 2)).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IEnumerable<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,99,99"
-        }, generatedCode);
+        ], generatedCode);
     }
     
     [Fact]
@@ -348,25 +360,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33, 44}).RemoveVals(Enumerable.Repeat(33, 2)).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IEnumerable<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -376,25 +389,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33, 77}, 66).WithVal(55).AddVals(99).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IEnumerable<int> vals, int val);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IEnumerable<int> vals, int val);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,77,99"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -404,25 +418,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IReadOnlyCollection<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IReadOnlyCollection<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -432,25 +447,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IReadOnlyList<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IReadOnlyList<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -460,25 +476,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IList<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IList<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -488,25 +505,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99,44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IList<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IList<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -516,25 +534,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(List<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(List<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -544,25 +563,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(System.Collections.Generic.List<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(System.Collections.Generic.List<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -572,25 +592,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[]{33}).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(int[] vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(int[] vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "33,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -600,25 +621,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(int[] vals = default);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(int[] vals = default);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -628,27 +650,28 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public readonly struct Rec
-                {
-                    public readonly int Val;
-                    public Rec(int val) { Val = val; }
-                }
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public readonly struct Rec
+                                     {
+                                         public readonly int Val;
+                                         public Rec(int val) { Val = val; }
+                                     }
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Sample.Rec"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -658,28 +681,29 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public struct Rec
-                {
-                    public readonly int Val;
-                    public Rec(int val) { Val = val; }
-                }
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public struct Rec
+                                     {
+                                         public readonly int Val;
+                                         public Rec(int val) { Val = val; }
+                                     }
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements,
             LanguageVersion = LanguageVersion.CSharp7_1
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Sample.Rec"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -689,27 +713,28 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public class Rec
-                {
-                    public readonly int Val;
-                    public Rec(int val) { Val = val; }
-                }
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public class Rec
+                                     {
+                                         public readonly int Val;
+                                         public Rec(int val) { Val = val; }
+                                     }
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Sample.Rec"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -719,32 +744,33 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(33, 99).WithVal1(99));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public class Rec
-                {
-                    public readonly int Val1;
-                    public readonly int Val2;
-                    public Rec(int val1, int val2)
-                    { 
-                        Val1 = val1; 
-                        Val2 = val2;
-                    }
-                }
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public class Rec
+                                     {
+                                         public readonly int Val1;
+                                         public readonly int Val2;
+                                         public Rec(int val1, int val2)
+                                         { 
+                                             Val1 = val1; 
+                                             Val2 = val2;
+                                         }
+                                     }
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Sample.Rec"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -754,25 +780,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Immutable;
-                using Immutype;
-
-                [Target]
-                public record Rec(ImmutableList<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Immutable;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(ImmutableList<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "22,55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -782,25 +809,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Immutable;
-                using Immutype;
-
-                [Target]
-                public record Rec(IImmutableList<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Immutable;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IImmutableList<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "22,55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -810,25 +838,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableArray.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Immutable;
-                using Immutype;
-
-                [Target]
-                public record Rec(ImmutableArray<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Immutable;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(ImmutableArray<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "22,55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -838,25 +867,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(22, 55).AddVals(99,44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Immutable;
-                using Immutype;
-
-                [Target]
-                public record Rec(ImmutableArray<int> vals = default);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Immutable;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(ImmutableArray<int> vals = default);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "22,55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -866,25 +896,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableQueue.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Immutable;
-                using Immutype;
-
-                [Target]
-                public record Rec(ImmutableQueue<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Immutable;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(ImmutableQueue<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "22,55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -894,26 +925,27 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec().WithVals(22, 55).AddVals(99,44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Immutable;
-                using Immutype;
-
-                [Target]
-                public record Rec(ImmutableQueue<int> vals = default);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Immutable;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(ImmutableQueue<int> vals = default);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "22,55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -923,25 +955,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableStack.Create(33)).WithVals(22, 55).AddVals(99,44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Immutable;
-                using Immutype;
-
-                [Target]
-                public record Rec(ImmutableStack<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Immutable;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(ImmutableStack<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "44,99,22,55"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -951,23 +984,24 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(\"abc\", 33).WithVal(99).WithDefaultVal());";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                
-                [Immutype.TargetAttribute()]
-                public record Rec(string str, int val = 44);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec(string str, int val = 44);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { str = abc, val = 44 }"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -977,25 +1011,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(\"abc\", ImmutableArray.Create(33)).WithVals(ImmutableArray.Create(11, 22)).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Immutable;
-                using Immutype;
-
-                [Target]
-                public record Rec(string str, ImmutableArray<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Immutable;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(string str, ImmutableArray<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "11,22"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1005,25 +1040,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).RemoveVals(33, 66).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IEnumerable<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "99"
-        }, generatedCode);
+        ], generatedCode);
     }
     
     [Fact]
@@ -1033,25 +1069,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).ClearVals().vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IEnumerable<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IEnumerable<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             ""
-        }, generatedCode);
+        ], generatedCode);
     }
     
     [Fact]
@@ -1061,25 +1098,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).ClearVals().vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(int[] vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(int[] vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             ""
-        }, generatedCode);
+        ], generatedCode);
     }
     
     [Fact]
@@ -1089,25 +1127,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new[] {33}).AddVals(99, 66).ClearVals().vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(params int[] vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(params int[] vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             ""
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1117,25 +1156,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(List<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(List<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1145,25 +1185,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IList<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IList<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1173,25 +1214,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new HashSet<int>{33}).WithVals(55).AddVals(99, 55, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(HashSet<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(HashSet<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1201,25 +1243,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec().AddVals(55).AddVals(99, 55, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(HashSet<int> vals = default);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(HashSet<int> vals = default);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1229,25 +1272,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new HashSet<int>{33}).WithVals(55).AddVals(99, 55, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(ISet<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(ISet<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1257,25 +1301,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new Queue<int>(new[]{33})).WithVals(55).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(Queue<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(Queue<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "55,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1285,25 +1330,26 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new Stack<int>(new[]{33})).WithVals(55).AddVals(99, 44).vals));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(Stack<int> vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(Stack<int> vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "44,99,55"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1313,26 +1359,27 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55, 66).AddVals(99, 44).vals!));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(IList<int>? vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IList<int>? vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements,
             NullableContextOptions = NullableContextOptions.Enable
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "55,66,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1342,26 +1389,27 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(new List<int>{33}).WithVals(55, 66).AddVals(99, 44).vals!));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Generic;
-                using Immutype;
-
-                [Target]
-                public record Rec(ICollection<int>? vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Generic;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(ICollection<int>? vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements,
             NullableContextOptions = NullableContextOptions.Enable
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "55,66,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1371,26 +1419,27 @@ public class Tests
         const string statements = "System.Console.WriteLine(string.Join(',', new Rec(ImmutableList.Create<int>(33)).WithVals(55, 66).AddVals(99, 44).vals!));";
 
         // When
-        var output = @"
-            namespace Sample
-            {
-                using System;
-                using System.Collections.Immutable;
-                using Immutype;
-
-                [Target]
-                public record Rec(IImmutableList<int>? vals);
-            }".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using System.Collections.Immutable;
+                                     using Immutype;
+                     
+                                     [Target]
+                                     public record Rec(IImmutableList<int>? vals);
+                                 }
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements,
             NullableContextOptions = NullableContextOptions.Enable
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "55,66,99,44"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1400,34 +1449,35 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2()).WithVal(new Types.Rec2()));";
 
         // When
-        var output = @"
-            using System.Collections.Generic;
-            namespace Sample
-            {
-                using System;
-                using Types;
-                using System.Collections.Generic;
-
-                [Immutype.TargetAttribute()]
-                public record Rec(Rec2 val);
-            }
-
-            namespace Sample.Types
-            {
-                using System;
-                [Immutype.TargetAttribute()]
-                public record Rec2();
-            }
-            ".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 using System.Collections.Generic;
+                                 namespace Sample
+                                 {
+                                     using System;
+                                     using Types;
+                                     using System.Collections.Generic;
+                     
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec(Rec2 val);
+                                 }
+                     
+                                 namespace Sample.Types
+                                 {
+                                     using System;
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec2();
+                                 }
+                                 
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = Rec2 { } }"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1437,34 +1487,35 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2(), new System.Text.StringBuilder()).WithVal(new Types.Rec2()));";
 
         // When
-        var output = @"
-            using System.Text;
-            namespace Sample
-            {
-                
-                using Types;
-                using System.Collections.Generic;
-
-                [Immutype.TargetAttribute()]
-                public record Rec(Rec2 val, StringBuilder stringBuilder);
-            }
-
-            namespace Sample.Types
-            {
-                using System;
-                [Immutype.TargetAttribute()]
-                public record Rec2();
-            }
-            ".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 using System.Text;
+                                 namespace Sample
+                                 {
+                                     
+                                     using Types;
+                                     using System.Collections.Generic;
+                     
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec(Rec2 val, StringBuilder stringBuilder);
+                                 }
+                     
+                                 namespace Sample.Types
+                                 {
+                                     using System;
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec2();
+                                 }
+                                 
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = Rec2 { }, stringBuilder =  }"
-        }, generatedCode);
+        ], generatedCode);
     }
 
     [Fact]
@@ -1474,28 +1525,29 @@ public class Tests
         const string statements = "System.Console.WriteLine(new Rec(new Types.Rec2()).WithVal(new Types.Rec2()));";
 
         // When
-        var output = @"
-            using System;
-            using Types;
-            using System.Collections.Generic;
-
-            [Immutype.TargetAttribute()]
-            public record Rec(Types.Rec2 val);
-
-            namespace Types
-            {
-                [Immutype.TargetAttribute()]
-                public record Rec2();
-            }
-            ".Run(out var generatedCode, new RunOptions
+        var output = """
+                     
+                                 using System;
+                                 using Types;
+                                 using System.Collections.Generic;
+                     
+                                 [Immutype.TargetAttribute()]
+                                 public record Rec(Types.Rec2 val);
+                     
+                                 namespace Types
+                                 {
+                                     [Immutype.TargetAttribute()]
+                                     public record Rec2();
+                                 }
+                                 
+                     """.Run(out var generatedCode, new RunOptions
         {
             Statements = statements
         });
 
         // Then
-        output.ShouldBe(new[]
-        {
+        output.ShouldBe([
             "Rec { val = Rec2 { } }"
-        }, generatedCode);
+        ], generatedCode);
     }
 }

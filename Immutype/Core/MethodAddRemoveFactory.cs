@@ -1,3 +1,4 @@
+// ReSharper disable ClassNeverInstantiated.Global
 namespace Immutype.Core;
 
 internal class MethodAddRemoveFactory : IMethodFactory
