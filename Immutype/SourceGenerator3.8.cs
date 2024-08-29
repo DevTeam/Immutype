@@ -28,7 +28,7 @@ namespace Immutype
             foreach (var tree in context.Compilation.SyntaxTrees)
             {
                 var semanticModel = context.Compilation.GetSemanticModel(tree);
-                var generationContext = new GenerationContext<SyntaxNode>(context.ParseOptions, context.Compilation, semanticModel, tree.GetRoot(), context.CancellationToken);
+                var generationContext = new GenerationContext<SyntaxNode>(context.ParseOptions, context.Compilation, semanticModel, tree.GetRoot(), context.CancellationToken, ImmutableDictionary<string, string>.Empty);
                 foreach (var source in Composition.SourceBuilder.Build(generationContext))
                 {
                     context.AddSource(source.HintName, source.Code);

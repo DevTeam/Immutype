@@ -63,7 +63,7 @@ public static class TestExtensions
         {
             var semanticModel = compilation.GetSemanticModel(tree);
             var root = tree.GetRoot();
-            var context = new GenerationContext<SyntaxNode>(parseOptions, compilation, semanticModel, root, CancellationToken.None);
+            var context = new GenerationContext<SyntaxNode>(parseOptions, compilation, semanticModel, root, CancellationToken.None, ImmutableDictionary<string, string>.Empty);
             generatedSources.AddRange(composition.SourceBuilder.Build(context));
         }
 

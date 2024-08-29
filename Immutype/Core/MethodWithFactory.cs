@@ -54,6 +54,7 @@ internal class MethodWithFactory : IMethodFactory
         if (!isCollectionParam || argumentParameter.Type is not NullableTypeSyntax)
         {
             yield return _commentsGenerator.AddComments(
+                context,
                 $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
@@ -68,6 +69,7 @@ internal class MethodWithFactory : IMethodFactory
         if (isCollectionParam && !isArrayParam)
         {
             yield return _commentsGenerator.AddComments(
+                context,
                 $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
@@ -82,6 +84,7 @@ internal class MethodWithFactory : IMethodFactory
         if (isCollectionParam)
         {
             yield return _commentsGenerator.AddComments(
+                context,
                 $"Clear <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 "",
@@ -101,6 +104,7 @@ internal class MethodWithFactory : IMethodFactory
         {
             var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(currentParameter.Default.Value) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
             yield return _commentsGenerator.AddComments(
+                context,
                 $"Set a default for <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 "",

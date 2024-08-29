@@ -10,7 +10,10 @@ using System.IO;
 using NamespaceType = BaseNamespaceDeclarationSyntax;
 #endif
 
-internal class ExtensionsFactory(IMethodsFactory methodsFactory, IInformation information) : IUnitFactory
+internal class ExtensionsFactory(
+    IMethodsFactory methodsFactory,
+    IInformation information,
+    IComments comments) : IUnitFactory
 {
     private static readonly UsingDirectiveSyntax[] AdditionalUsings =
     [
@@ -20,6 +23,7 @@ internal class ExtensionsFactory(IMethodsFactory methodsFactory, IInformation in
     public IEnumerable<Source> Create(GenerationContext<TypeDeclarationSyntax> context, IReadOnlyList<ParameterSyntax> parameters)
     {
         var typeDeclarationSyntax = context.Syntax;
+        context = context with { DocComments = comments.GetParamsComments(typeDeclarationSyntax.DescendantTrivia()) };
         var ns = typeDeclarationSyntax.Ancestors()
 #if ROSLYN38
             .OfType<NamespaceDeclarationSyntax>()

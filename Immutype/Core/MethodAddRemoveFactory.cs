@@ -43,6 +43,7 @@ internal class MethodAddRemoveFactory : IMethodFactory
         if (addArgs.Any())
         {
             yield return _commentsGenerator.AddComments(
+                context,
                 $"Add <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be added to the copy of the instance.",
@@ -58,6 +59,7 @@ internal class MethodAddRemoveFactory : IMethodFactory
         if (removeArgs.Any())
         {
             yield return _commentsGenerator.AddComments(
+                context,
                 $"Remove <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be removed from the instance copy.",
@@ -78,6 +80,7 @@ internal class MethodAddRemoveFactory : IMethodFactory
         if (addArgs.Any())
         {
             yield return _commentsGenerator.AddComments(
+                context,
                 $"Add <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be added to the copy of the instance.",
@@ -93,6 +96,7 @@ internal class MethodAddRemoveFactory : IMethodFactory
         if (removeArgs.Any())
         {
             yield return _commentsGenerator.AddComments(
+                context,
                 $"Remove <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
                 currentParameter,
                 $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be removed from the instance copy.",

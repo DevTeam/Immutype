@@ -27,6 +27,7 @@ internal partial class Composition
             .Bind(Tag.Type).To<MethodAddRemoveFactory>()
             .Bind().To<CommentsGenerator>()
             .Bind().To<Information>()
+            .Bind().To<Comments>()
     
         .DefaultLifetime(Lifetime.Singleton)
             .Bind().To<ComponentsBuilder>()

@@ -1,8 +1,9 @@
 namespace Immutype.Core;
 
-public interface ICommentsGenerator
+internal interface ICommentsGenerator
 {
     T AddComments<T>(
+        GenerationContext<TypeDeclarationSyntax> context,
         string title,
         ParameterSyntax parameter,
         string targetComment,

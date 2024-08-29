@@ -108,4 +108,78 @@ public class CommentsTests
         generatedCode.Contains("<param name=\"val\"><c>Val</c> to be changed in the copy of the instance.</param>").ShouldBeTrue();
         generatedCode.Contains("<returns>The modified copy of the original instance.</returns>").ShouldBeTrue();
     }
+    
+    [Fact]
+    public void ShouldGenerateCommentFromDoc()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+        // When
+        var output = @"
+            namespace Sample
+            {
+                using System;
+                
+                [Immutype.TargetAttribute()]
+                /// <summary>
+                /// Som text
+                /// </summary>
+                /// <param name=""val"">AbcComment</param>                
+                public record Rec(
+                    int val);
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = 99 }"
+        }, generatedCode);
+        
+        generatedCode.Contains("/// Set <c>Val</c>. AbcComment").ShouldBeTrue();
+        generatedCode.Contains("<param name=\"it\">The original instance.</param>").ShouldBeTrue();
+        generatedCode.Contains("<param name=\"val\"><c>Val</c> to be changed in the copy of the instance.</param>").ShouldBeTrue();
+        generatedCode.Contains("<returns>The modified copy of the original instance.</returns>").ShouldBeTrue();
+    }
+    
+    [Fact]
+    public void ShouldGenerateCommentFromDocAndSimple()
+    {
+        // Given
+        const string statements = "System.Console.WriteLine(new Rec(33).WithVal(99));";
+
+        // When
+        var output = @"
+            namespace Sample
+            {
+                using System;
+                
+                [Immutype.TargetAttribute()]
+                /// <summary>
+                /// Som text
+                /// </summary>
+                /// <param name=""val"">AbcComment</param>                
+                public record Rec(
+                    // Xyz
+                    int val);
+            }".Run(out var generatedCode, new RunOptions
+        {
+            Statements = statements
+        });
+
+        // Then
+        output.ShouldBe(new[]
+        {
+            "Rec { val = 99 }"
+        }, generatedCode);
+        
+        generatedCode.Contains("/// Set <c>Val</c>. AbcComment").ShouldBeTrue();
+        generatedCode.Contains("/// Xyz").ShouldBeTrue();
+        generatedCode.Contains("<param name=\"it\">The original instance.</param>").ShouldBeTrue();
+        generatedCode.Contains("<param name=\"val\"><c>Val</c> to be changed in the copy of the instance.</param>").ShouldBeTrue();
+        generatedCode.Contains("<returns>The modified copy of the original instance.</returns>").ShouldBeTrue();
+    }
 }

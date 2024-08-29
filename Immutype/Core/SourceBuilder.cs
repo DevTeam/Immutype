@@ -25,7 +25,7 @@ internal class SourceBuilder : ISourceBuilder
         from typeDeclarationSyntax in context.Syntax.DescendantNodes().OfType<TypeDeclarationSyntax>()
         where !context.CancellationToken.IsCancellationRequested
         where _typeSyntaxFilter.IsAccepted(typeDeclarationSyntax)
-        from source in Build(new GenerationContext<TypeDeclarationSyntax>(context.Options, context.Compilation, context.SemanticModel, typeDeclarationSyntax, context.CancellationToken))
+        from source in Build(new GenerationContext<TypeDeclarationSyntax>(context.Options, context.Compilation, context.SemanticModel, typeDeclarationSyntax, context.CancellationToken, ImmutableDictionary<string, string>.Empty))
         select source;
 
     public IEnumerable<Source> Build(GenerationContext<TypeDeclarationSyntax> context)

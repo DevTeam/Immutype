@@ -43,7 +43,7 @@ namespace Immutype
                 // ReSharper disable once UseDeconstruction
                 foreach (var change in changes)
                 {
-                    var generationContext = new GenerationContext<TypeDeclarationSyntax>(change.Left.Right, change.Right, change.Left.Left.SemanticModel, (TypeDeclarationSyntax)change.Left.Left.Node, ctx.CancellationToken);
+                    var generationContext = new GenerationContext<TypeDeclarationSyntax>(change.Left.Right, change.Right, change.Left.Left.SemanticModel, (TypeDeclarationSyntax)change.Left.Left.Node, ctx.CancellationToken, ImmutableDictionary<string, string>.Empty);
                     foreach (var source in composition.SourceBuilder.Build(generationContext))
                     {
                         ctx.AddSource(source.HintName, source.Code);
