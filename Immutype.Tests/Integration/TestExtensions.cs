@@ -49,6 +49,9 @@ public static class TestExtensions
         var additionalCode = curOptions.AdditionalCode.Select(code => CSharpSyntaxTree.ParseText(code, parseOptions)).ToArray();
 
         var compilation = CreateCompilation()
+            .WithOptions(
+                new CSharpCompilationOptions(OutputKind.ConsoleApplication)
+                    .WithNullableContextOptions(options?.NullableContextOptions ?? NullableContextOptions.Disable))
             .AddSyntaxTrees(CSharpSyntaxTree.ParseText(setupCode, parseOptions))
             .AddSyntaxTrees(additionalCode);
 
@@ -66,9 +69,6 @@ public static class TestExtensions
 
         generatedCode = string.Join(Environment.NewLine, generatedSources.Select((src, index) => $"Generated {index + 1}" + Environment.NewLine + Environment.NewLine + src.Code));
         compilation = compilation
-            .WithOptions(
-                new CSharpCompilationOptions(OutputKind.ConsoleApplication)
-                    .WithNullableContextOptions(options?.NullableContextOptions ?? NullableContextOptions.Disable))
             .AddSyntaxTrees(CSharpSyntaxTree.ParseText(hostCode, parseOptions))
             .AddSyntaxTrees(generatedSources.Select(i => CSharpSyntaxTree.ParseText(i.Code.ToString(), parseOptions)).ToArray())
             .Check(generatedCode);

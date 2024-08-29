@@ -20,8 +20,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Components\Contracts.cs" />
-        <Compile Remove="Components\Contracts.cs" />
+        <EmbeddedResource Include="Components\Contracts.g.cs" />
+        <Compile Remove="Components\Contracts.g.cs" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,5 +1,6 @@
-// ReSharper disable CheckNamespace
-// ReSharper disable ClassNeverInstantiated.Global
+ #if !IMMUTYPE_API_SUPPRESSION
+#pragma warning disable
+ 
 namespace Immutype
 {
     using System;
@@ -7,3 +8,6 @@ namespace Immutype
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Constructor, Inherited = false)]
     public class TargetAttribute: Attribute { }
 }
+
+#pragma warning restore
+#endif
