@@ -155,7 +155,7 @@ internal readonly struct Person
         Age = age;
         Friends = friends ?? ImmutableList<Person>.Empty;
     }
-};
+}
 
 public class ImmutableCollection
 {
@@ -372,7 +372,7 @@ internal readonly struct Person
         Age = age;
         Friends = friends ?? ImmutableList<Person>.Empty;
     }
-};
+}
 
 public class ExplicitConstructorChoice
 {
