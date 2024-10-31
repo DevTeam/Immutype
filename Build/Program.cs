@@ -11,8 +11,8 @@ const string configuration = "Release";
 const string packageId = "Immutype";
 Settings[] buildSettings = 
 [
-    new Settings("3.8", "3.8.0"),
-    new Settings("4.0", "4.0.1")
+    new("3.8", "3.8.0"),
+    new("4.0", "4.0.1")
 ];
 
 var currentDir = Environment.CurrentDirectory;
@@ -33,14 +33,12 @@ foreach (var settings in buildSettings)
     new DotNetClean()
         .WithConfiguration(configuration)
         .WithProps(props)
-        .Build()
-        .EnsureSuccess();
+        .Build().EnsureSuccess();
 
     new DotNetTest()
         .WithConfiguration(configuration)
         .WithProps(props)
-        .Build()
-        .EnsureSuccess();
+        .Build().EnsureSuccess();
 
     var packagePath = Path.GetFullPath(Path.Combine(outputDir, $"roslyn{settings.AnalyzerRoslynVersion}"));
     new DotNetPack()
@@ -48,8 +46,7 @@ foreach (var settings in buildSettings)
         .WithNoBuild(true)
         .WithOutput(packagePath)
         .WithProps(props)
-        .Build()
-        .EnsureSuccess();
+        .Build().EnsureSuccess();
     
     var package = Path.Combine(packagePath, $"Immutype.{nuGetVersion}.nupkg");
     packages.Add(package);
@@ -68,10 +65,9 @@ if (!string.IsNullOrWhiteSpace(apiKey) && nuGetVersion.Release != "dev")
     new DotNetNuGetPush()
         .WithShortName($"Pushing {Path.GetFileName(mergedPackage)}")
         .WithApiKey(apiKey)
-        .WithSources("https://api.nuget.org/v3/index.json")
+        .WithSource("https://api.nuget.org/v3/index.json")
         .WithPackage(mergedPackage)
-        .Run()
-        .EnsureSuccess();
+        .Run().EnsureSuccess();
 }
 
 WriteLine($"Package version: {nuGetVersion}", Color.Highlighted);
