@@ -1,16 +1,11 @@
 // ReSharper disable ClassNeverInstantiated.Global
 namespace Immutype.Core;
 
-internal class TypeSyntaxFilter : ITypeSyntaxFilter
+internal class TypeSyntaxFilter(ISyntaxNodeFactory syntaxNodeFactory) : ITypeSyntaxFilter
 {
-    private readonly ISyntaxNodeFactory _syntaxNodeFactory;
-
-    public TypeSyntaxFilter(ISyntaxNodeFactory syntaxNodeFactory) =>
-        _syntaxNodeFactory = syntaxNodeFactory;
-
     public bool IsAccepted(TypeDeclarationSyntax typeDeclarationSyntax)
     {
-        if (!_syntaxNodeFactory.IsAccessible(typeDeclarationSyntax.Modifiers))
+        if (!syntaxNodeFactory.IsAccessible(typeDeclarationSyntax.Modifiers))
         {
             return false;
         }
@@ -20,7 +15,7 @@ internal class TypeSyntaxFilter : ITypeSyntaxFilter
             return false;
         }
 
-        if (!_syntaxNodeFactory.HasTargetAttribute(typeDeclarationSyntax))
+        if (!syntaxNodeFactory.HasTargetAttribute(typeDeclarationSyntax))
         {
             return false;
         }

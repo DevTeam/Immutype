@@ -59,14 +59,14 @@ public static class TestExtensions
 
         var generatedSources = new List<Source>();
         var composition = new Composition();
-        generatedSources.AddRange(composition.ComponentsBuilder.Build(CancellationToken.None));
+        generatedSources.AddRange(composition.Root.ComponentsBuilder.Build(CancellationToken.None));
         // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
         foreach (var tree in compilation.SyntaxTrees)
         {
             var semanticModel = compilation.GetSemanticModel(tree);
             var root = tree.GetRoot();
             var context = new GenerationContext<SyntaxNode>(parseOptions, compilation, semanticModel, root, CancellationToken.None, ImmutableDictionary<string, string>.Empty);
-            generatedSources.AddRange(composition.SourceBuilder.Build(context));
+            generatedSources.AddRange(composition.Root.SourceBuilder.Build(context));
         }
 
         generatedCode = string.Join(Environment.NewLine, generatedSources.Select((src, index) => $"Generated {index + 1}" + Environment.NewLine + Environment.NewLine + src.Code));

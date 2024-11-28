@@ -17,9 +17,10 @@ namespace Immutype
                 Debugger.Launch();
             }*/
 
+            var root = Composition.Root;
             if (!(context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.ImmutypeAPI", out var valueStr) && bool.TryParse(valueStr, out var value) && value == false))
             {
-                foreach (var source in Composition.ComponentsBuilder.Build(context.CancellationToken))
+                foreach (var source in root.ComponentsBuilder.Build(context.CancellationToken))
                 {
                     context.AddSource(source.HintName, source.Code);
                 }
@@ -29,7 +30,7 @@ namespace Immutype
             {
                 var semanticModel = context.Compilation.GetSemanticModel(tree);
                 var generationContext = new GenerationContext<SyntaxNode>(context.ParseOptions, context.Compilation, semanticModel, tree.GetRoot(), context.CancellationToken, ImmutableDictionary<string, string>.Empty);
-                foreach (var source in Composition.SourceBuilder.Build(generationContext))
+                foreach (var source in root.SourceBuilder.Build(generationContext))
                 {
                     context.AddSource(source.HintName, source.Code);
                 }
