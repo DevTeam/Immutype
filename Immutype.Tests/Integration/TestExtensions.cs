@@ -31,7 +31,7 @@ public static class TestExtensions
                 MetadataReference.CreateFromFile(typeof(Uri).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(SourceBuilder).Assembly.Location));
 
-    public static IReadOnlyList<string> Run(this string setupCode, out string generatedCode, RunOptions? options = default)
+    public static IReadOnlyList<string> Run(this string setupCode, out string generatedCode, RunOptions? options = null)
     {
         var curOptions = options ?? new RunOptions();
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(curOptions.LanguageVersion);

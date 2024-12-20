@@ -4,14 +4,10 @@
 
 namespace Immutype.Core;
 
-internal readonly struct Source
+internal readonly struct Source(
+    string hintName,
+    SourceText code)
 {
-    public readonly string HintName;
-    public readonly SourceText Code;
-
-    public Source(string hintName, SourceText code)
-    {
-        HintName = hintName;
-        Code = code;
-    }
+    public readonly string HintName = hintName;
+    public readonly SourceText Code = code;
 }

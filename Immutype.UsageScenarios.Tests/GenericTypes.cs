@@ -19,7 +19,7 @@ namespace Immutype.UsageScenarios.Tests.GenericTypes
     // $header=It is possible to use generic types including any generic constraints.
     // {
     [Immutype.Target]
-    internal record Person<TAge>(string Name, TAge Age = default, IEnumerable<Person<TAge>>? Friends = default) 
+    internal record Person<TAge>(string Name, TAge Age = default, IEnumerable<Person<TAge>>? Friends = null) 
         where TAge : struct;
 
     public class GenericTypes

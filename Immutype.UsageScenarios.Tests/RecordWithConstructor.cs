@@ -21,8 +21,8 @@ namespace Immutype.UsageScenarios.Tests.RecordWithConstructor
     {
         public Person(
             string name,
-            int? age = default,
-            ICollection<Person>? friends = default)
+            int? age = null,
+            ICollection<Person>? friends = null)
         {
             Name = name;
             Age = age;

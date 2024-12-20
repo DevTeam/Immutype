@@ -6,74 +6,34 @@ internal class DataContainerFactory : IDataContainerFactory
 {
     private static readonly Dictionary<string, string> GenericTypeMap = new()
     {
-        {
-            "List", "List"
-        },
-        {
-            "IEnumerable", "List"
-        },
-        {
-            "IReadOnlyCollection", "List"
-        },
-        {
-            "IReadOnlyList", "List"
-        },
-        {
-            "ICollection", "List"
-        },
-        {
-            "IList", "List"
-        },
-        {
-            "HashSet", "HashSet"
-        },
-        {
-            "ISet", "HashSet"
-        },
-        {
-            "Queue", "Queue"
-        },
-        {
-            "Stack", "Stack"
-        }
+        { "List", "List" },
+        { "IEnumerable", "List" },
+        { "IReadOnlyCollection", "List" },
+        { "IReadOnlyList", "List" },
+        { "ICollection", "List" },
+        { "IList", "List" },
+        { "HashSet", "HashSet" },
+        { "ISet", "HashSet" },
+        { "Queue", "Queue" },
+        { "Stack", "Stack" }
     };
 
     private static readonly Dictionary<string, string> ReadonlyTypeMap = new()
     {
-        {
-            "IReadOnlyCollection", "List"
-        },
-        {
-            "IReadOnlyList", "List"
-        },
-        {
-            "IReadOnlySet", "List"
-        }
+        { "IReadOnlyCollection", "List" },
+        { "IReadOnlyList", "List" },
+        { "IReadOnlySet", "List" }
     };
 
     private static readonly Dictionary<string, string> ImmutableTypeMap = new()
     {
-        {
-            "ImmutableList", "ImmutableList"
-        },
-        {
-            "IImmutableList", "ImmutableList"
-        },
-        {
-            "ImmutableArray", "ImmutableArray"
-        },
-        {
-            "ImmutableQueue", "ImmutableQueue"
-        },
-        {
-            "IImmutableQueue", "ImmutableQueue"
-        },
-        {
-            "ImmutableStack", "ImmutableStack"
-        },
-        {
-            "IImmutableStack", "ImmutableStack"
-        }
+        { "ImmutableList", "ImmutableList" },
+        { "IImmutableList", "ImmutableList" },
+        { "ImmutableArray", "ImmutableArray" },
+        { "ImmutableQueue", "ImmutableQueue" },
+        { "IImmutableQueue", "ImmutableQueue" },
+        { "ImmutableStack", "ImmutableStack" },
+        { "IImmutableStack", "ImmutableStack" }
     };
 
     public bool TryCreate(GenericNameSyntax genericNameSyntax, ref ExpressionSyntax? expressionSyntax, ref ParameterSyntax argumentParameter)
@@ -111,7 +71,7 @@ internal class DataContainerFactory : IDataContainerFactory
         if (ImmutableTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out var immutableTypeName))
         {
             var immutableDataTypeName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier($"System.Collections.Immutable.{immutableTypeName}"));
-            if (expressionSyntax != default)
+            if (expressionSyntax != null)
             {
                 expressionSyntax = SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
@@ -142,7 +102,7 @@ internal class DataContainerFactory : IDataContainerFactory
             .AddTypeArgumentListArguments(elementType);
 
         var result = SyntaxRepo.ObjectCreationExpression(genericDataType);
-        return expressionSyntax != default
+        return expressionSyntax != null
             ? result.AddArgumentListArguments(SyntaxFactory.Argument(expressionSyntax))
             : result.AddArgumentListArguments();
     }

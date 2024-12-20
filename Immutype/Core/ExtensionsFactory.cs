@@ -69,11 +69,11 @@ internal class ExtensionsFactory(
     private static CompilationUnitSyntax CreateRootNode(SyntaxNode targetNode, UsingDirectiveSyntax[] additionalUsings, params MemberDeclarationSyntax[] members)
     {
         var namespaces = targetNode.Ancestors().OfType<NamespaceType>();
-        NamespaceType? rootNamespace = default;
+        NamespaceType? rootNamespace = null;
         foreach (var ns in namespaces)
         {
             var nextNs = ns.WithMembers(new SyntaxList<MemberDeclarationSyntax>([]));
-            rootNamespace = rootNamespace == default
+            rootNamespace = rootNamespace == null
                 ? nextNs.AddMembers(members).AddUsings(GetUsings(nextNs.Usings, additionalUsings))
                 : nextNs.AddMembers(rootNamespace);
         }
@@ -82,7 +82,7 @@ internal class ExtensionsFactory(
         var rootCompilationUnit = (baseCompilationUnit ?? SyntaxFactory.CompilationUnit())
             .WithMembers(new SyntaxList<MemberDeclarationSyntax>([]));
 
-        return rootNamespace != default
+        return rootNamespace != null
             ? rootCompilationUnit.AddMembers(rootNamespace)
             : rootCompilationUnit.AddUsings(GetUsings(rootCompilationUnit.Usings, additionalUsings)).AddMembers(members);
     }
@@ -96,7 +96,7 @@ internal class ExtensionsFactory(
     private static ClassDeclarationSyntax TryAddAttribute(SemanticModel semanticModel, ClassDeclarationSyntax classDeclarationSyntax, string attributeClassName)
     {
         var excludeFromCodeCoverageType = semanticModel.Compilation.GetTypeByMetadataName(attributeClassName + "Attribute");
-        if (excludeFromCodeCoverageType != default)
+        if (excludeFromCodeCoverageType != null)
         {
             classDeclarationSyntax = classDeclarationSyntax.WithNewLine()
                 .AddAttributeLists(SyntaxFactory.AttributeList().AddAttributes(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(attributeClassName))))

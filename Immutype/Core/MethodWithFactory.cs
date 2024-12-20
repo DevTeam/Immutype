@@ -25,7 +25,7 @@ internal class MethodWithFactory : IMethodFactory
     public IEnumerable<MethodDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
     {
         var curParameters = parameters.ToArray();
-        var argumentParameter = currentParameter.WithDefault(default);
+        var argumentParameter = currentParameter.WithDefault(null);
         var newArgumentParameter = argumentParameter;
         var targetDeclaration = context.Syntax;
         var arguments = new List<ArgumentSyntax>();
@@ -101,7 +101,7 @@ internal class MethodWithFactory : IMethodFactory
                                     SyntaxFactory.IdentifierName($"With{name}" + targetDeclaration.TypeParameterList))))));
         }
         
-        if (currentParameter.Default != default)
+        if (currentParameter.Default != null)
         {
             var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(currentParameter.Default.Value) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
             yield return _commentsGenerator.AddComments(
@@ -124,7 +124,7 @@ internal class MethodWithFactory : IMethodFactory
             return true;
         }
 
-        if (argumentParameter.Type == default || newArgumentParameter.Type == default)
+        if (argumentParameter.Type == null || newArgumentParameter.Type == null)
         {
             return false;
         }
@@ -140,7 +140,7 @@ internal class MethodWithFactory : IMethodFactory
 
     private ExpressionSyntax CreateWithExpression(TypeSyntax? currentParameterType, ref ParameterSyntax argumentParameter, ExpressionSyntax result)
     {
-        if (currentParameterType == default)
+        if (currentParameterType == null)
         {
             return result;
         }

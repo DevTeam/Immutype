@@ -29,7 +29,7 @@ namespace Immutype.UsageScenarios.Tests.ExplicitConstructorChoice
         public Person(
             string name,
             int age = 0,
-            IImmutableList<Person>? friends = default)
+            IImmutableList<Person>? friends = null)
         {
             Name = name;
             Age = age;

@@ -32,7 +32,7 @@
         <!-- Should be compatible with .NET 5.0.102+ and Visual Studio 16.8+ -->
         <!-- https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md#versioning -->
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.1" PrivateAssets="all" />
-        <PackageReference Include="Pure.DI" Version="2.1.42">
+        <PackageReference Include="Pure.DI" Version="2.1.44">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>analyzers</IncludeAssets>
         </PackageReference>

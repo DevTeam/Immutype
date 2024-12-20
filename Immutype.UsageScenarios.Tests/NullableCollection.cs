@@ -19,8 +19,8 @@ namespace Immutype.UsageScenarios.Tests.NullableCollection
     [Immutype.Target]
     internal record Person(
         string Name,
-        int? Age = default,
-        ICollection<Person>? Friends = default);
+        int? Age = null,
+        ICollection<Person>? Friends = null);
 
     public class NullableCollection
     {

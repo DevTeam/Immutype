@@ -19,7 +19,7 @@ namespace Immutype.UsageScenarios.Tests.Set
     internal record Person(
         string Name,
         int Age = 0,
-        ISet<Person>? Friends = default);
+        ISet<Person>? Friends = null);
 
     public class Set
     {

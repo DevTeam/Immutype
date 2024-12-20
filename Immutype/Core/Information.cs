@@ -8,8 +8,11 @@ internal sealed class Information : IInformation
     
     static Information()
     {
-        var assembly = typeof(Information).Assembly;
-        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        var version = typeof(Information)
+            .Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+
         if (!string.IsNullOrWhiteSpace(version))
         {
             CurrentDescription = $"{CurrentDescription} {version}";

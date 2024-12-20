@@ -17,21 +17,21 @@ internal static class SyntaxRepo
     public static TSyntax WithNewLine<TSyntax>(this TSyntax node) where TSyntax : SyntaxNode =>
         node.WithLeadingTrivia(node.GetLeadingTrivia().Concat([SyntaxFactory.CarriageReturn, SyntaxFactory.LineFeed]));
 
-    public static ObjectCreationExpressionSyntax ObjectCreationExpression(TypeSyntax type, ArgumentListSyntax? argumentList = default, InitializerExpressionSyntax? initializer = default)
+    public static ObjectCreationExpressionSyntax ObjectCreationExpression(TypeSyntax type, ArgumentListSyntax? argumentList = null, InitializerExpressionSyntax? initializer = null)
         => SyntaxFactory.ObjectCreationExpression(SyntaxKind.NewKeyword.WithSpace(), type, argumentList, initializer);
     
-    public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax? expression = default)
+    public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax? expression = null)
         => SyntaxFactory.ReturnStatement(default, SyntaxKind.ReturnKeyword.WithSpace(), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
     public static MethodDeclarationSyntax MethodDeclaration(TypeSyntax returnType, string identifier)
-        => SyntaxFactory.MethodDeclaration(default, default, returnType, default, SyntaxFactory.Identifier(identifier).WithSpace(), default, SyntaxFactory.ParameterList(), default, default, default, default);
+        => SyntaxFactory.MethodDeclaration(default, default, returnType, null, SyntaxFactory.Identifier(identifier).WithSpace(), null, SyntaxFactory.ParameterList(), default, null, null, default);
 
     public static ClassDeclarationSyntax ClassDeclaration(string identifier)
-        => SyntaxFactory.ClassDeclaration(default, default, SyntaxKind.ClassKeyword.WithSpace(), SyntaxFactory.Identifier(identifier), default, default, default, SyntaxKind.OpenBraceToken.WithNewLine(), default, SyntaxKind.CloseBraceToken.WithNewLine(), default);
+        => SyntaxFactory.ClassDeclaration(default, default, SyntaxKind.ClassKeyword.WithSpace(), SyntaxFactory.Identifier(identifier), null, null, default, SyntaxKind.OpenBraceToken.WithNewLine(), default, SyntaxKind.CloseBraceToken.WithNewLine(), default);
     
     public static ParameterSyntax Parameter(SyntaxToken identifier)
-        => SyntaxFactory.Parameter(default, default, default, identifier.WithSpace(), default);
+        => SyntaxFactory.Parameter(default, default, null, identifier.WithSpace(), null);
     
-    public static ThrowStatementSyntax ThrowStatement(ExpressionSyntax? expression = default)
+    public static ThrowStatementSyntax ThrowStatement(ExpressionSyntax? expression = null)
         => SyntaxFactory.ThrowStatement(default, SyntaxKind.ThrowKeyword.WithSpace(), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 }
