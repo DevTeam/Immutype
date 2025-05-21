@@ -1,5 +1,3 @@
-
-
 // ReSharper disable UnusedMember.Local
 // ReSharper disable PartialTypeWithSinglePart
 
