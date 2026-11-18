@@ -32,8 +32,12 @@ internal class ExtensionsFactory(
             .Reverse()
             .ToArray();
 
+        var namespaceName = ns.Length > 0
+            ? string.Join(".", ns.Select(i => i.Name.ToString()))
+            : GetNamespaceName(context.SemanticModel, typeDeclarationSyntax);
+
         var typeName =
-            string.Join(".", ns.Select(i => i.Name.ToString())
+            string.Join(".", new[] { namespaceName }.Where(i => i != string.Empty)
                 .Concat([
                     typeDeclarationSyntax.Identifier.Text + typeDeclarationSyntax.TypeParameterList
                 ]));
@@ -57,16 +61,23 @@ internal class ExtensionsFactory(
             code.AppendLine("#nullable enable");
         }
         
-        code.AppendLine(CreateRootNode(typeDeclarationSyntax, AdditionalUsings, extensionsClass).ToFullString());
+        code.AppendLine(CreateRootNode(typeDeclarationSyntax, namespaceName, AdditionalUsings, extensionsClass).ToFullString());
         code.AppendLine("#pragma warning restore");
-        var fileName = string.Join(".", ns.Select(i => i.Name.ToString()).Concat([
+        var fileName = string.Join(".", new[] { namespaceName }.Where(i => i != string.Empty).Concat([
             typeDeclarationSyntax.Identifier.Text
         ]));
 
         yield return new Source($"{fileName}.g", SourceText.From(code.ToString(), Encoding.UTF8));
     }
 
-    private static CompilationUnitSyntax CreateRootNode(SyntaxNode targetNode, UsingDirectiveSyntax[] additionalUsings, params MemberDeclarationSyntax[] members)
+    private static string GetNamespaceName(SemanticModel semanticModel, TypeDeclarationSyntax typeDeclarationSyntax) =>
+        semanticModel.GetDeclaredSymbol(typeDeclarationSyntax) is { } symbol
+            ? symbol.ContainingNamespace is { IsGlobalNamespace: false } containingNamespace
+                ? containingNamespace.ToDisplayString()
+                : string.Empty
+            : string.Empty;
+
+    private static CompilationUnitSyntax CreateRootNode(SyntaxNode targetNode, string namespaceName, UsingDirectiveSyntax[] additionalUsings, params MemberDeclarationSyntax[] members)
     {
         var namespaces = targetNode.Ancestors().OfType<NamespaceType>();
         NamespaceType? rootNamespace = null;
@@ -84,7 +95,18 @@ internal class ExtensionsFactory(
 
         return rootNamespace != null
             ? rootCompilationUnit.AddMembers(rootNamespace)
-            : rootCompilationUnit.AddUsings(GetUsings(rootCompilationUnit.Usings, additionalUsings)).AddMembers(members);
+            : namespaceName != string.Empty
+                ? rootCompilationUnit.AddMembers(
+                    CreateNamespaceDeclaration(namespaceName)
+                        .AddUsings(GetUsings([], additionalUsings))
+                        .AddMembers(members))
+                : rootCompilationUnit.AddUsings(GetUsings(rootCompilationUnit.Usings, additionalUsings)).AddMembers(members);
+    }
+
+    private static NamespaceDeclarationSyntax CreateNamespaceDeclaration(string namespaceName)
+    {
+        var compilationUnit = SyntaxFactory.ParseCompilationUnit($"namespace {namespaceName}" + Environment.NewLine + "{" + Environment.NewLine + Environment.NewLine + "}" + Environment.NewLine);
+        return (NamespaceDeclarationSyntax)compilationUnit.Members[0];
     }
 
     private static UsingDirectiveSyntax[] GetUsings(IEnumerable<UsingDirectiveSyntax> usings, IEnumerable<UsingDirectiveSyntax> additionalUsings)
