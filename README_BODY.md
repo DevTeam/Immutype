@@ -5,7 +5,34 @@
 [<img src="http://teamcity.jetbrains.com/app/rest/builds/buildType:(id:OpenSourceProjects_DevTeam_Immutype_BuildAndTestBuildType)/statusIcon"/>](http://teamcity.jetbrains.com/viewType.html?buildTypeId=OpenSourceProjects_DevTeam_Immutype_BuildAndTestBuildType&guest=1)
 ![GitHub Build](https://github.com/DevTeam/Immutype/actions/workflows/main.yml/badge.svg)
 
-_Immutype_ is [.NET code generator](https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/source-generators-overview) creating extension methods for records, structures, and classes marked by the attribute `````[Immutype.Target]````` to efficiently operate with instances of these types like with immutable ones.
+Immutype is a C# source generator that adds extension methods to records, structs, and classes marked with `[Immutype.Target]`. These methods return an updated instance and leave the original instance untouched.
+
+## Quick start
+
+In a C# console project, install the [Immutype NuGet package](https://www.nuget.org/packages/Immutype).
+
+```sh
+dotnet add package Immutype
+```
+
+Replace `Program.cs` with this example (C# 9 or later) and run `dotnet run`.
+
+```csharp
+using System;
+
+var alice = new Person("Alice");
+var updated = alice.AddFriends(new Person("Bob"));
+
+Console.WriteLine(alice.Friends.Length);    // 0
+Console.WriteLine(updated.Friends[0].Name); // Bob
+
+[Immutype.Target]
+internal record Person(string Name, params Person[] Friends);
+```
+
+In Visual Studio's Package Manager Console, use `Install-Package Immutype`.
+
+## Generated methods
 
 For instance, for the type Foo for the constructor parameter *__values__* of type ```IEnumerable<int>``` following extension methods are generated:
 
@@ -23,12 +50,12 @@ For the type Foo for the constructor parameter *__value__* of other types, like 
 - ```Foo WithDefaultValue(this Foo it)``` - to replace a value by the default value *__99__*
 
 The extensions methods above are generating automatically for each ```public``` or ```internal``` type, like *__Foo__* marked by the attribute ```[Immutype.Target]``` in the static class named as *__FooExtensions__*. This generated class *__FooExtensions__* is static, has the same accessibility level and the same namespace like a target class *__Foo__*. Each generated static extension method has two attributes:
-- ```[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]``` - to improve performance
+- ```[MethodImpl(MethodImplOptions.AggressiveInlining)]``` - to encourage inlining
 - ```[Pure]``` - to indicate that this method is pure, that is, it does not make any visible state changes
 
-_Immutype_ supports nullable [reference](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) and [value](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types) types and the following list of enumerable types:
+Immutype supports nullable reference and value types. It generates collection operations for these types.
 
-- Arrays
+- Arrays of the form `T[]`
 - ```IEnumerable<T>```
 - ```List<T>```
 - ```IList<T>```
@@ -39,9 +66,6 @@ _Immutype_ supports nullable [reference](https://docs.microsoft.com/en-us/dotnet
 - ```ISet<T>```
 - ```Queue<T>```
 - ```Stack<T>```
-- ```IReadOnlyCollection<T>```
-- ```IReadOnlyList<T>```
-- ```IReadOnlySet<T>```
 - ```ImmutableList<T>```
 - ```IImmutableList<T>```
 - ```ImmutableArray<T>```
@@ -50,36 +74,21 @@ _Immutype_ supports nullable [reference](https://docs.microsoft.com/en-us/dotnet
 - ```ImmutableStack<T>```
 - ```IImmutableStack<T>```
 
-_Immutype_ supports [IIncrementalGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.iincrementalgenerator) as well as [ISourceGenerator](https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.isourcegenerator) so it works quite effective.
+## Compatibility
 
-## NuGet package
+### Using the NuGet package
 
-[![NuGet](https://img.shields.io/nuget/v/Immutype)](https://www.nuget.org/packages/Immutype)
+The published package requires Roslyn 4.3 or later. Use .NET SDK 6.0.400 or later for command-line builds, or Visual Studio 2022 17.3 or later. See the [Roslyn toolset version mapping](https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md#versioning).
 
-- Package Manager
+Basic class and struct scenarios work with C# 6. Nullable reference annotations require C# 8, records require C# 9, and record structs require C# 10.
 
-  ```
-  Install-Package Immutype
-  ```
+Immutype runs at build time and adds no runtime dependency on the generator. Your target framework needs to provide the APIs used by the generated code, including LINQ for collection operations. Add a `System.Collections.Immutable` reference for immutable collections if your target framework requires it.
 
-- .NET CLI
+### Building Immutype from source
 
-  ```
-  dotnet add package Immutype
-  ```
+Install the .NET 11 SDK specified in [global.json](global.json). Run the tests from the repository root.
 
-## Development environment requirements
-
-- [.NET SDK 5.0.102+](https://dotnet.microsoft.com/download/dotnet/5.0)
-- [C# v.6 or newer](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-version-history#c-version-40)
-
-## Supported frameworks
-
-- [.NET and .NET Core](https://docs.microsoft.com/en-us/dotnet/core/) 1.0+
-- [.NET Standard](https://docs.microsoft.com/en-us/dotnet/standard/net-standard) 1.0+
-- [.NET Framework](https://docs.microsoft.com/en-us/dotnet/framework/) 3.5+
-- [UWP/XBOX](https://docs.microsoft.com/en-us/windows/uwp/index)
-- [.NET IoT](https://dotnet.microsoft.com/apps/iot)
-- [Xamarin](https://dotnet.microsoft.com/apps/xamarin)
-- [.NET Multi-platform App UI (MAUI)](https://docs.microsoft.com/en-us/dotnet/maui/)
+```sh
+dotnet test Immutype.sln
+```
 

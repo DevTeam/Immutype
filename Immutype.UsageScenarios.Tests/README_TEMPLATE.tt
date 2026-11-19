@@ -128,11 +128,13 @@
     }
 
     var readmeBodyFile = Path.Combine(solutionPath, "README_BODY.md");
+    var readmeFooterFile = Path.Combine(solutionPath, "README_FOOTER.md");
     var readmeFile = Path.Combine(solutionPath, "README.md");
     var samplesFile = Path.Combine(currentPath, "README_TEMPLATE.md");
     
     File.Copy(readmeBodyFile, readmeFile, true);
 
     var samplesContent = File.ReadAllText(samplesFile);
-    File.AppendAllText(readmeFile, samplesContent);    
+    File.AppendAllText(readmeFile, samplesContent.TrimEnd() + Environment.NewLine + Environment.NewLine);
+    File.AppendAllText(readmeFile, File.ReadAllText(readmeFooterFile));
 #>
