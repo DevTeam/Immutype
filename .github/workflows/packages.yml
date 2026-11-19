@@ -1,0 +1,235 @@
+name: Publish NuGet package
+
+# A tag names the version to build and publish: 1.2.3 for a release, 1.2.3-beta.1 for a prerelease.
+# The "v" prefix is not used. The patterns only select candidate tags;
+# the "release" job rejects anything that is not a version.
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing version tag (1.2.3 or 1.2.3-beta.1)'
+        required: true
+        type: string
+      publish:
+        description: 'Publish the built package to NuGet.org'
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuget-release
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  # Resolves the tag to a canonical package version and the commit that every other job builds.
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      commit: ${{ steps.release.outputs.commit }}
+      publish: ${{ steps.release.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Resolve version tag
+        id: release
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+          REQUESTED_PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = $env:RELEASE_TAG
+          # Canonical SemVer without the v prefix and without build metadata.
+          if ($tag -cnotmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?$') {
+            throw "Tag must be a version such as 1.2.3 or 1.2.3-beta.1, but it is '$env:RELEASE_TAG'."
+          }
+          git fetch --no-tags origin "refs/tags/$($env:RELEASE_TAG):refs/tags/$($env:RELEASE_TAG)"
+          if ($LASTEXITCODE -ne 0) { throw 'Version tag was not found.' }
+          $commit = git rev-parse --verify "refs/tags/$($env:RELEASE_TAG)^{commit}"
+          if ($LASTEXITCODE -ne 0) { throw 'The tag does not point to a commit.' }
+          "version=$tag" >> $env:GITHUB_OUTPUT
+          "commit=$commit" >> $env:GITHUB_OUTPUT
+          "publish=$($env:REQUESTED_PUBLISH.ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "Tag: $tag`n`nCommit: $commit`n`nPublish: $env:REQUESTED_PUBLISH" >> $env:GITHUB_STEP_SUMMARY
+
+  # Builds and tests the generator for each Roslyn version in parallel, as the "Immutype check" workflow does.
+  # The versions must match the "allSettings" list in Build/Program.cs:
+  # an unknown version fails its job, and the "pack" job merges the packages of every version.
+  generator:
+    name: generator (Roslyn ${{ matrix.roslyn }})
+    needs: release
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        roslyn: [ '3.8', '4.0' ]
+
+    steps:
+      - name: Checkout release sources
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.commit }}
+          persist-credentials: false
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-roslyn-${{ matrix.roslyn }}-${{ hashFiles('global.json', '**/Directory.Build.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-roslyn-${{ matrix.roslyn }}-
+
+      - name: Build and test
+        env:
+          PACKAGE_VERSION: ${{ needs.release.outputs.version }}
+        run: dotnet run --project ./Build -- "-p:roslyn=${{ matrix.roslyn }}" "-p:merge=false" "-p:version=$PACKAGE_VERSION"
+
+      - name: Save generator package
+        uses: actions/upload-artifact@v4
+        with:
+          name: generator-${{ matrix.roslyn }}
+          path: Immutype/Bin/Release/roslyn${{ matrix.roslyn }}/Immutype.${{ needs.release.outputs.version }}.nupkg
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
+
+  # Merges the packages of every Roslyn version into the package that is published.
+  pack:
+    name: pack
+    needs: [ release, generator ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout release sources
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.commit }}
+          persist-credentials: false
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-pack-${{ hashFiles('global.json', '**/Directory.Build.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-pack-
+
+      - name: Load generator packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: generator-*
+          path: Immutype/Bin/Release/prebuilt
+
+      - name: Arrange generator packages by Roslyn version
+        run: |
+          for dir in Immutype/Bin/Release/prebuilt/generator-*; do
+            version="${dir##*/generator-}"
+            mkdir -p "Immutype/Bin/Release/roslyn${version}"
+            mv "$dir"/*.nupkg "Immutype/Bin/Release/roslyn${version}/"
+          done
+          ls -R Immutype/Bin/Release
+
+      - name: Merge packages
+        env:
+          PACKAGE_VERSION: ${{ needs.release.outputs.version }}
+        run: dotnet run --project ./Build -- "-p:roslyn=prebuilt" "-p:publish=false" "-p:version=$PACKAGE_VERSION"
+
+      - name: Validate the package
+        shell: pwsh
+        env:
+          PACKAGE_VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = "Immutype/Bin/Release/Immutype.$env:PACKAGE_VERSION.nupkg"
+          if (-not (Test-Path $package)) { throw "Package not found: $package" }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $package))
+          try {
+            $entries = $zip.Entries.FullName
+          } finally {
+            $zip.Dispose()
+          }
+          foreach ($roslyn in @('3.8', '4.0')) {
+            $expected = "analyzers/dotnet/roslyn$roslyn/cs/Immutype.dll"
+            if ($entries -notcontains $expected) { throw "The package does not contain $expected." }
+          }
+          foreach ($expected in @('common/icon.png', 'Immutype.nuspec')) {
+            if ($entries -notcontains $expected) { throw "The package does not contain $expected." }
+          }
+          "The package contains: $($entries -join ', ')" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Save NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: Immutype/Bin/Release/Immutype.${{ needs.release.outputs.version }}.nupkg
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: publish
+    if: ${{ needs.release.outputs.publish == 'true' }}
+    needs: [ release, pack ]
+    runs-on: ubuntu-latest
+    environment: nuget
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: nuget-package
+          path: packages
+
+      - name: NuGet login
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Publish the package
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+          PACKAGE_VERSION: ${{ needs.release.outputs.version }}
+          RELEASE_COMMIT: ${{ needs.release.outputs.commit }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = "packages/Immutype.$env:PACKAGE_VERSION.nupkg"
+          if (-not (Test-Path $package)) { throw "Package not found: $package" }
+          dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
+          if ($LASTEXITCODE -ne 0) { throw 'Publishing the package failed.' }
+          "Published Immutype $env:PACKAGE_VERSION`n`nRelease commit: $env:RELEASE_COMMIT" >> $env:GITHUB_STEP_SUMMARY

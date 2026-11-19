@@ -1,19 +1,151 @@
 name: Immutype check
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches: [ master ]
+    paths-ignore: &docs
+      - 'README.md'
+      - 'LICENSE'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    paths-ignore: *docs
+  workflow_dispatch:
 
+# A newer push to a branch or a pull request cancels its older run; every master commit is checked.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+# Builds and tests the generator for each Roslyn version in parallel.
+# The versions must match the "allSettings" list in Build/Program.cs:
+# an unknown version fails its job, and the "pack" job merges the packages of every version.
 jobs:
-  build:  
-    
+  # Resolves one package version for all jobs, so their packages can be merged.
+  version:
+    name: version
     runs-on: ubuntu-latest
-    
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '11.0.x'
+          global-json-file: global.json
 
-      - name: Build
-        run: dotnet run --project ./Build
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-version-${{ hashFiles('global.json', '**/Directory.Build.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-version-
+
+      - name: Resolve package version
+        id: version
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $output = dotnet run --project ./Build -- "-p:versionOnly=true"
+          if ($LASTEXITCODE -ne 0) { throw 'Resolving the package version failed.' }
+          $line = $output | Where-Object { $_ -match '^PackageVersion=' } | Select-Object -Last 1
+          if (-not $line) { throw "The build did not report a package version. Output: $output" }
+          $version = $line.Substring('PackageVersion='.Length).Trim()
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "Package version: $version" >> $env:GITHUB_STEP_SUMMARY
+
+  generator:
+    name: generator (Roslyn ${{ matrix.roslyn }})
+    needs: version
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        roslyn: [ '3.8', '4.0' ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-roslyn-${{ matrix.roslyn }}-${{ hashFiles('global.json', '**/Directory.Build.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-roslyn-${{ matrix.roslyn }}-
+
+      - name: Build and test
+        env:
+          PACKAGE_VERSION: ${{ needs.version.outputs.version }}
+        run: dotnet run --project ./Build -- "-p:roslyn=${{ matrix.roslyn }}" "-p:merge=false" "-p:version=$PACKAGE_VERSION"
+
+      - name: Save generator package
+        uses: actions/upload-artifact@v4
+        with:
+          name: generator-${{ matrix.roslyn }}
+          path: Immutype/Bin/Release/roslyn${{ matrix.roslyn }}/Immutype.${{ needs.version.outputs.version }}.nupkg
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
+
+  # Merges the packages of every Roslyn version into a single package.
+  pack:
+    name: pack
+    needs: [ version, generator ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-pack-${{ hashFiles('global.json', '**/Directory.Build.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-pack-
+
+      - name: Load generator packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: generator-*
+          path: Immutype/Bin/Release/prebuilt
+
+      - name: Arrange generator packages by Roslyn version
+        run: |
+          for dir in Immutype/Bin/Release/prebuilt/generator-*; do
+            version="${dir##*/generator-}"
+            mkdir -p "Immutype/Bin/Release/roslyn${version}"
+            mv "$dir"/*.nupkg "Immutype/Bin/Release/roslyn${version}/"
+          done
+          ls -R Immutype/Bin/Release
+
+      - name: Merge packages
+        env:
+          PACKAGE_VERSION: ${{ needs.version.outputs.version }}
+        run: dotnet run --project ./Build -- "-p:roslyn=prebuilt" "-p:publish=false" "-p:version=$PACKAGE_VERSION"
+
+      - name: Save NuGet package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: Immutype/Bin/Release/Immutype.${{ needs.version.outputs.version }}.nupkg
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
