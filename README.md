@@ -1,3 +1,5 @@
+<img src="Docs/Images/icon.png" width="72" height="72" alt="Immutype logo">
+
 # Immutype
 
 [![NuGet](https://img.shields.io/nuget/v/Immutype)](https://www.nuget.org/packages/Immutype)
