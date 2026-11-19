@@ -9,6 +9,12 @@ internal sealed class SyntaxInfo : ISyntaxInfo
 #endif
         ;
 
+    public ParameterListSyntax? GetUnionCases(TypeDeclarationSyntax type) =>
+        // UnionDeclarationSyntax is available only in newer compiler hosts.
+        type.Keyword.ValueText == "union"
+            ? type.ChildNodes().OfType<ParameterListSyntax>().FirstOrDefault()
+            : null;
+
     public bool HasTargetAttribute(MemberDeclarationSyntax member) =>
         member.AttributeLists
             .SelectMany(list => list.Attributes)

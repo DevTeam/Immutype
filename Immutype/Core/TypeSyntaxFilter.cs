@@ -20,7 +20,8 @@ internal class TypeSyntaxFilter(ISyntaxInfo syntaxInfo) : ITypeSyntaxFilter
             return false;
         }
 
-        if (typeDeclarationSyntax is RecordDeclarationSyntax { ParameterList.Parameters.Count: > 0 })
+        if (typeDeclarationSyntax is RecordDeclarationSyntax { ParameterList.Parameters.Count: > 0 }
+            || syntaxInfo.GetUnionCases(typeDeclarationSyntax) is { Parameters.Count: > 0 })
         {
             return true;
         }

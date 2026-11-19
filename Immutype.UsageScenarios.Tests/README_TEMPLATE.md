@@ -13,6 +13,7 @@
   - [Set](#set)
   - [Record with constructor](#record-with-constructor)
   - [Explicit constructor choice](#explicit-constructor-choice)
+  - [Union types](#union-types)
 
 ### Sample scenario
 
@@ -391,4 +392,34 @@ public class ExplicitConstructorChoice
 ```
 
 
+
+### Union types
+
+Mark a union with `[Immutype.Target]` to generate a `WithValue` overload for each case type. A union can also be a record parameter, where the usual `With` method accepts its case types through C# union conversions.
+
+``` CSharp
+[Immutype.Target]
+internal union Contact(string, long);
+
+[Immutype.Target]
+internal record Person(string Name, Contact PreferredContact);
+
+public class Union
+{
+    public void Run()
+    {
+        Contact email = "alice@example.com";
+        var phone = email.WithValue(123456789L);
+        var alice = new Person("Alice", email);
+        var updated = alice.WithPreferredContact(123456789L);
+
+        (email is "alice@example.com").ShouldBeTrue();
+        (phone is 123456789L).ShouldBeTrue();
+        (phone.WithValue("alice@example.com") is "alice@example.com").ShouldBeTrue();
+        (alice.PreferredContact is "alice@example.com").ShouldBeTrue();
+        (updated.PreferredContact is 123456789L).ShouldBeTrue();
+        updated.Name.ShouldBe("Alice");
+    }
+}
+```
 

@@ -4,6 +4,8 @@ internal interface ISyntaxInfo
 {
     bool IsValueType(TypeDeclarationSyntax type);
 
+    ParameterListSyntax? GetUnionCases(TypeDeclarationSyntax type);
+
     bool HasTargetAttribute(MemberDeclarationSyntax member);
 
     bool IsAccessible(IEnumerable<SyntaxToken> modifiers);

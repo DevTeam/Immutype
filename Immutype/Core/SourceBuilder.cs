@@ -20,6 +20,11 @@ internal class SourceBuilder(
 
     public IEnumerable<Source> Build(GenerationContext<TypeDeclarationSyntax> context)
     {
+        if (syntaxInfo.GetUnionCases(context.Syntax) is { } cases)
+        {
+            return unitFactory.Create(context, cases.Parameters);
+        }
+
         IReadOnlyList<ParameterSyntax>? parameters = null;
         if (context.Syntax is RecordDeclarationSyntax recordDeclarationSyntax && recordDeclarationSyntax.ParameterList?.Parameters.Count != 0)
         {

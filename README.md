@@ -83,6 +83,8 @@ The published package requires Roslyn 4.3 or later. Use .NET SDK 6.0.400 or late
 
 Basic class and struct scenarios work with C# 6. Nullable reference annotations require C# 8, records require C# 9, and record structs require C# 10.
 
+Union declarations require C# 15 and the .NET 11 SDK. See [Union types](#union-types) for an example.
+
 Immutype runs at build time and adds no runtime dependency on the generator. Your target framework needs to provide the APIs used by the generated code, including LINQ for collection operations. Add a `System.Collections.Immutable` reference for immutable collections if your target framework requires it.
 
 ### Building Immutype from source
@@ -108,6 +110,7 @@ dotnet test Immutype.sln
   - [Set](#set)
   - [Record with constructor](#record-with-constructor)
   - [Explicit constructor choice](#explicit-constructor-choice)
+  - [Union types](#union-types)
 
 ### Sample scenario
 
@@ -481,6 +484,38 @@ public class ExplicitConstructorChoice
                 new Person("David").WithAge(22));
         
         john.Friends.Count.ShouldBe(3);
+    }
+}
+```
+
+
+
+### Union types
+
+Mark a union with `[Immutype.Target]` to generate a `WithValue` overload for each case type. A union can also be a record parameter, where the usual `With` method accepts its case types through C# union conversions.
+
+``` CSharp
+[Immutype.Target]
+internal union Contact(string, long);
+
+[Immutype.Target]
+internal record Person(string Name, Contact PreferredContact);
+
+public class Union
+{
+    public void Run()
+    {
+        Contact email = "alice@example.com";
+        var phone = email.WithValue(123456789L);
+        var alice = new Person("Alice", email);
+        var updated = alice.WithPreferredContact(123456789L);
+
+        (email is "alice@example.com").ShouldBeTrue();
+        (phone is 123456789L).ShouldBeTrue();
+        (phone.WithValue("alice@example.com") is "alice@example.com").ShouldBeTrue();
+        (alice.PreferredContact is "alice@example.com").ShouldBeTrue();
+        (updated.PreferredContact is 123456789L).ShouldBeTrue();
+        updated.Name.ShouldBe("Alice");
     }
 }
 ```

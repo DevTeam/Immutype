@@ -83,6 +83,8 @@ The published package requires Roslyn 4.3 or later. Use .NET SDK 6.0.400 or late
 
 Basic class and struct scenarios work with C# 6. Nullable reference annotations require C# 8, records require C# 9, and record structs require C# 10.
 
+Union declarations require C# 15 and the .NET 11 SDK. See [Union types](#union-types) for an example.
+
 Immutype runs at build time and adds no runtime dependency on the generator. Your target framework needs to provide the APIs used by the generated code, including LINQ for collection operations. Add a `System.Collections.Immutable` reference for immutable collections if your target framework requires it.
 
 ### Building Immutype from source

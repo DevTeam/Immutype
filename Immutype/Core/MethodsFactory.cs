@@ -16,9 +16,14 @@ internal sealed class MethodsFactory(
             ? "this in"
             : "this";
         var target = targetType + typeParameters;
+        var isUnion = syntaxInfo.GetUnionCases(context.Syntax) != null;
+        var receiverName = isUnion ? GetAvailableParameterName("it") : "it";
+        var valueName = isUnion ? GetAvailableParameterName("value") : null;
         var extensions = new ExtensionMethods(
-            code, context, target, typeParameters, $"{modifier} {target} it", !syntaxInfo.IsValueType(context.Syntax),
-            [.. parameters.Select(parameter => $"it.{syntaxInfo.GetMemberName(context.Syntax, parameter.Identifier)}")]);
+            code, context, target, typeParameters, $"{modifier} {target} {receiverName}", !isUnion && !syntaxInfo.IsValueType(context.Syntax),
+            isUnion
+                ? [$"{receiverName}.Value"]
+                : [.. parameters.Select(parameter => $"it.{syntaxInfo.GetMemberName(context.Syntax, parameter.Identifier)}")]);
 
         for (var index = 0; index < parameters.Count; index++)
         {
@@ -29,18 +34,36 @@ internal sealed class MethodsFactory(
                 continue;
             }
 
-            var method = new MethodContext(
-                extensions,
-                parameter,
-                index,
-                nameService.ConvertToName(parameter.Identifier.ValueText),
-                dataContainerFactory.GetCollection(type),
-                syntaxInfo.NeedsNullGuard(context.Compilation, type) ? type.ToString() : null);
+            var method = valueName != null
+                ? new MethodContext(
+                    extensions,
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier(valueName)).WithType(type.WithoutTrivia()).NormalizeWhitespace(),
+                    0,
+                    "Value",
+                    null,
+                    null)
+                : new MethodContext(
+                    extensions,
+                    parameter,
+                    index,
+                    nameService.ConvertToName(parameter.Identifier.ValueText),
+                    dataContainerFactory.GetCollection(type),
+                    syntaxInfo.NeedsNullGuard(context.Compilation, type) ? type.ToString() : null);
 
             foreach (var factory in methodFactories)
             {
                 factory.Build(method);
             }
+        }
+
+        string GetAvailableParameterName(string name)
+        {
+            while (context.Syntax.TypeParameterList?.Parameters.Any(parameter => parameter.Identifier.ValueText == name) == true)
+            {
+                name += "_";
+            }
+
+            return name;
         }
     }
 }
