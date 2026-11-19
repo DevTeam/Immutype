@@ -4,7 +4,6 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Immutype)](https://www.nuget.org/packages/Immutype)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[<img src="http://teamcity.jetbrains.com/app/rest/builds/buildType:(id:OpenSourceProjects_DevTeam_Immutype_BuildAndTestBuildType)/statusIcon"/>](http://teamcity.jetbrains.com/viewType.html?buildTypeId=OpenSourceProjects_DevTeam_Immutype_BuildAndTestBuildType&guest=1)
 ![GitHub Build](https://github.com/DevTeam/Immutype/actions/workflows/main.yml/badge.svg)
 
 Immutype is a C# source generator that adds extension methods to records, structs, and classes marked with `[Immutype.Target]`. These methods return an updated instance and leave the original instance untouched.
