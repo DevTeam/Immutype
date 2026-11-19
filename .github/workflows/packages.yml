@@ -57,9 +57,14 @@ jobs:
           if ($tag -cnotmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?$') {
             throw "Tag must be a version such as 1.2.3 or 1.2.3-beta.1, but it is '$env:RELEASE_TAG'."
           }
-          git fetch --no-tags origin "refs/tags/$($env:RELEASE_TAG):refs/tags/$($env:RELEASE_TAG)"
-          if ($LASTEXITCODE -ne 0) { throw 'Version tag was not found.' }
-          $commit = git rev-parse --verify "refs/tags/$($env:RELEASE_TAG)^{commit}"
+          # The tag is usually already present after the checkout, and fetching it again
+          # fails with "would clobber existing tag".
+          $commit = git rev-parse --verify "refs/tags/$($env:RELEASE_TAG)^{commit}" 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            git fetch --no-tags origin "+refs/tags/$($env:RELEASE_TAG):refs/tags/$($env:RELEASE_TAG)"
+            if ($LASTEXITCODE -ne 0) { throw 'Version tag was not found.' }
+            $commit = git rev-parse --verify "refs/tags/$($env:RELEASE_TAG)^{commit}"
+          }
           if ($LASTEXITCODE -ne 0) { throw 'The tag does not point to a commit.' }
           "version=$tag" >> $env:GITHUB_OUTPUT
           "commit=$commit" >> $env:GITHUB_OUTPUT
