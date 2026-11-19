@@ -219,6 +219,22 @@ jobs:
           name: nuget-package
           path: packages
 
+      - name: Show the claims NuGet.org sees
+        shell: pwsh
+        env:
+          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $audience = [uri]::EscapeDataString('https://www.nuget.org')
+          $response = Invoke-RestMethod -Uri "$env:ACTIONS_ID_TOKEN_REQUEST_URL&audience=$audience" -Headers @{ Authorization = "Bearer $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN" }
+          $parts = $response.value.Split('.')
+          $payload = $parts[1].Replace('-', '+').Replace('_', '/')
+          switch ($payload.Length % 4) { 2 { $payload += '==' } 3 { $payload += '=' } }
+          $claims = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) | ConvertFrom-Json
+          $claims | ConvertTo-Json -Depth 5 >> $env:GITHUB_STEP_SUMMARY
+          $claims | ConvertTo-Json -Depth 5
+
       - name: NuGet login
         uses: NuGet/login@v1
         id: login
