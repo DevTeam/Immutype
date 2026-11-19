@@ -149,7 +149,7 @@ internal readonly struct Person
     public Person(
         string name,
         int age = 0,
-        IImmutableList<Person>? friends = default)
+        IImmutableList<Person>? friends = null)
     {
         Name = name;
         Age = age;
@@ -208,7 +208,7 @@ It is possible to use generic types including any generic constraints.
 
 ``` CSharp
 [Immutype.Target]
-internal record Person<TAge>(string Name, TAge Age = default, IEnumerable<Person<TAge>>? Friends = default) 
+internal record Person<TAge>(string Name, TAge Age = default, IEnumerable<Person<TAge>>? Friends = null) 
     where TAge : struct;
 
 public class GenericTypes
@@ -237,8 +237,8 @@ public class GenericTypes
 [Immutype.Target]
 internal record Person(
     string Name,
-    int? Age = default,
-    ICollection<Person>? Friends = default);
+    int? Age = null,
+    ICollection<Person>? Friends = null);
 
 public class NullableCollection
 {
@@ -266,7 +266,7 @@ public class NullableCollection
 internal record Person(
     string Name,
     int Age = 0,
-    ISet<Person>? Friends = default);
+    ISet<Person>? Friends = null);
 
 public class Set
 {
@@ -296,8 +296,8 @@ internal record Person
 {
     public Person(
         string name,
-        int? age = default,
-        ICollection<Person>? friends = default)
+        int? age = null,
+        ICollection<Person>? friends = null)
     {
         Name = name;
         Age = age;
@@ -355,7 +355,7 @@ internal readonly struct Person
     public Person(
         string name,
         int age = 0,
-        IImmutableList<Person>? friends = default)
+        IImmutableList<Person>? friends = null)
     {
         Name = name;
         Age = age;

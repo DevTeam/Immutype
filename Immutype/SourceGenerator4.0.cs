@@ -20,7 +20,7 @@ namespace Immutype
             {
                 if (options.GlobalOptions.TryGetValue("build_property.ImmutypeAPI", out var valueStr)
                     && bool.TryParse(valueStr, out var value)
-                    && value == false)
+                    && !value)
                 {
                     return;
                 }
@@ -33,7 +33,7 @@ namespace Immutype
 
             var changes = context.SyntaxProvider.CreateSyntaxProvider(
                     (node, _) => node is TypeDeclarationSyntax typeDeclarationSyntax && root.SyntaxFilter.IsAccepted(typeDeclarationSyntax),
-                    (syntaxContext, _) => syntaxContext)
+                    (syntaxContext, _) => (TypeDeclarationSyntax)syntaxContext.Node)
                 .Combine(context.ParseOptionsProvider)
                 .Combine(context.CompilationProvider)
                 .Collect();
@@ -45,7 +45,7 @@ namespace Immutype
                 // ReSharper disable once UseDeconstruction
                 foreach (var change in changes)
                 {
-                    var generationContext = new GenerationContext<TypeDeclarationSyntax>(change.Left.Right, change.Right, change.Left.Left.SemanticModel, (TypeDeclarationSyntax)change.Left.Left.Node, ctx.CancellationToken, ImmutableDictionary<string, string>.Empty);
+                    var generationContext = new GenerationContext<TypeDeclarationSyntax>(change.Left.Right, change.Right, change.Left.Left, ctx.CancellationToken, ImmutableDictionary<string, string>.Empty);
                     foreach (var source in root.SourceBuilder.Build(generationContext))
                     {
                         ctx.AddSource(source.HintName, source.Code);

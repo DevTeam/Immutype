@@ -1,169 +1,43 @@
-// ReSharper disable ConvertIfStatementToConditionalTernaryExpression
-// ReSharper disable InvertIf
-// ReSharper disable ClassNeverInstantiated.Global
 namespace Immutype.Core;
 
-internal class MethodWithFactory : IMethodFactory
+internal sealed class MethodWithFactory(IMethodWriter writer) : IMethodFactory
 {
-    private readonly INameService _nameService;
-    private readonly ISyntaxNodeFactory _syntaxNodeFactory;
-    private readonly IDataContainerFactory _dataContainerFactory;
-    private readonly ICommentsGenerator _commentsGenerator;
-
-    public MethodWithFactory(
-        INameService nameService,
-        ISyntaxNodeFactory syntaxNodeFactory,
-        IDataContainerFactory dataContainerFactory,
-        ICommentsGenerator commentsGenerator)
+    public void Build(MethodContext context)
     {
-        _nameService = nameService;
-        _syntaxNodeFactory = syntaxNodeFactory;
-        _dataContainerFactory = dataContainerFactory;
-        _commentsGenerator = commentsGenerator;
-    }
+        var parameter = context.Parameter;
+        var collection = context.Collection;
+        var name = context.Name;
+        var withMethod = $"With{name}";
+        var title = $"Set <c>{name}</c>.";
+        var argumentComment = $"<c>{name}</c> to be changed in the copy of the instance.";
 
-    public IEnumerable<MethodDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IEnumerable<ParameterSyntax> parameters, ParameterSyntax currentParameter, ParameterSyntax thisParameter)
-    {
-        var curParameters = parameters.ToArray();
-        var argumentParameter = currentParameter.WithDefault(null);
-        var newArgumentParameter = argumentParameter;
-        var targetDeclaration = context.Syntax;
-        var arguments = new List<ArgumentSyntax>();
-        var newArguments = new List<ArgumentSyntax>();
-        foreach (var parameter in curParameters)
+        if (collection == null || collection is { IsArray: false } && parameter.Type is not NullableTypeSyntax)
         {
-            if (parameter == currentParameter)
+            writer.Write(context, withMethod, title, context.CreateCopy(context.ArgumentName),
+                parameter.WithDefault(null).ToString(), argumentComment, context.ArgumentGuardType);
+        }
+
+        if (collection != null)
+        {
+            var paramsType = collection.ParamsType;
+            var value = collection.IsArray ? context.ArgumentName : collection.Materialize(context.ArgumentName);
+            var attributes = string.Join(" ", parameter.AttributeLists);
+            var declaration = $"params {paramsType} {context.ArgumentName}";
+            if (attributes.Length > 0)
             {
-                arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argumentParameter.Identifier.Text)));
-                newArguments.Add(SyntaxFactory.Argument(CreateWithExpression(argumentParameter, out newArgumentParameter)));
+                declaration = $"{attributes} {declaration}";
             }
-            else
-            {
-                arguments.Add(_syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
-                newArguments.Add(_syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
-            }
+
+            writer.Write(context, withMethod, title, context.CreateCopy(value),
+                declaration, argumentComment, paramsType);
+            writer.Write(context, $"Clear{name}", $"Clear <c>{name}</c>.",
+                $"it.{withMethod}{context.Extensions.TypeParameters}()", guardReceiver: false);
         }
-        
-        var name = _nameService.ConvertToName(currentParameter.Identifier.Text);
-        var isArrayParam = argumentParameter.Type is ArrayTypeSyntax;
-        var isCollectionParam = !AreEqu(argumentParameter, newArgumentParameter) || isArrayParam;
-        if (isArrayParam && argumentParameter.Modifiers.All(i => !i.IsKind(SyntaxKind.ParamsKeyword)))
+
+        if (parameter.Default is { } defaultValue)
         {
-            argumentParameter = argumentParameter.AddModifiers(SyntaxKind.ParamsKeyword.WithSpace());
+            writer.Write(context, $"WithDefault{name}", $"Set a default for <c>{name}</c>.",
+                context.CreateCopy(defaultValue.Value.ToString()));
         }
-        
-        if (!isCollectionParam || argumentParameter.Type is not NullableTypeSyntax)
-        {
-            yield return _commentsGenerator.AddComments(
-                context,
-                $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
-                currentParameter,
-                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
-                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
-                    .AddParameterListParameters(thisParameter, argumentParameter)
-                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, argumentParameter, false).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, arguments)));
-        }
-
-        if (isCollectionParam && !isArrayParam)
-        {
-            yield return _commentsGenerator.AddComments(
-                context,
-                $"Set <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
-                currentParameter,
-                $"<c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c> to be changed in the copy of the instance.",
-                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"With{name}" + targetDeclaration.TypeParameterList)
-                    .AddParameterListParameters(thisParameter, newArgumentParameter)
-                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, newArgumentParameter, false).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, newArguments)));
-        }
-        
-        if (isCollectionParam)
-        {
-            yield return _commentsGenerator.AddComments(
-                context,
-                $"Clear <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
-                currentParameter,
-                "",
-                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"Clear{name}" + targetDeclaration.TypeParameterList)
-                    .AddParameterListParameters(thisParameter)
-                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                    .AddBodyStatements(
-                        SyntaxRepo.ReturnStatement(
-                            SyntaxFactory.InvocationExpression(
-                                SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    SyntaxFactory.IdentifierName(thisParameter.Identifier.Text),
-                                    SyntaxFactory.IdentifierName($"With{name}" + targetDeclaration.TypeParameterList))))));
-        }
-        
-        if (currentParameter.Default != null)
-        {
-            var args = curParameters.Select(parameter => parameter == currentParameter ? SyntaxFactory.Argument(currentParameter.Default.Value) : _syntaxNodeFactory.CreateTransientArgument(targetDeclaration, thisParameter, parameter));
-            yield return _commentsGenerator.AddComments(
-                context,
-                $"Set a default for <c>{_nameService.ConvertToName(currentParameter.Identifier.Text)}</c>.",
-                currentParameter,
-                "",
-                _syntaxNodeFactory.CreateExtensionMethod(targetType, $"WithDefault{name}" + targetDeclaration.TypeParameterList)
-                    .AddParameterListParameters(thisParameter)
-                    .WithConstraintClauses(targetDeclaration.ConstraintClauses)
-                    .AddBodyStatements(_syntaxNodeFactory.CreateGuards(context, thisParameter, !_syntaxNodeFactory.IsValueType(context.Syntax)).ToArray())
-                    .AddBodyStatements(_syntaxNodeFactory.CreateReturnStatement(targetType, args)));
-        }
-    }
-
-    private static bool AreEqu(BaseParameterSyntax argumentParameter, BaseParameterSyntax newArgumentParameter)
-    {
-        if (Equals(argumentParameter.Type, newArgumentParameter.Type))
-        {
-            return true;
-        }
-
-        if (argumentParameter.Type == null || newArgumentParameter.Type == null)
-        {
-            return false;
-        }
-
-        return argumentParameter.Type.IsEquivalentTo(newArgumentParameter.Type);
-    }
-
-    private ExpressionSyntax CreateWithExpression(ParameterSyntax currentParameter, out ParameterSyntax argumentParameter)
-    {
-        argumentParameter = currentParameter;
-        return CreateWithExpression(currentParameter.Type, ref argumentParameter, SyntaxFactory.IdentifierName(currentParameter.Identifier));
-    }
-
-    private ExpressionSyntax CreateWithExpression(TypeSyntax? currentParameterType, ref ParameterSyntax argumentParameter, ExpressionSyntax result)
-    {
-        if (currentParameterType == null)
-        {
-            return result;
-        }
-
-        switch (_syntaxNodeFactory.GetUnqualified(currentParameterType))
-        {
-            case NullableTypeSyntax nullableTypeSyntax:
-                result = CreateWithExpression(nullableTypeSyntax.ElementType, ref argumentParameter, result);
-                break;
-
-            case GenericNameSyntax genericNameSyntax:
-                _dataContainerFactory.TryCreate(genericNameSyntax, ref result!, ref argumentParameter);
-                break;
-
-            case ArrayTypeSyntax:
-                if (!argumentParameter.Modifiers.Any(i => i.IsKind(SyntaxKind.ParamsKeyword)))
-                {
-                    argumentParameter = argumentParameter.AddModifiers(SyntaxKind.ParamsKeyword.WithSpace());
-                }
-
-                break;
-        }
-
-        return result;
     }
 }

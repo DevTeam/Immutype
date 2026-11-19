@@ -3,60 +3,48 @@ namespace Immutype.Core;
 
 internal class CommentsGenerator : ICommentsGenerator
 {
-    public T AddComments<T>(
+    public void Write(
+        LineBuilder code,
         GenerationContext<TypeDeclarationSyntax> context,
         string title,
         ParameterSyntax parameter,
-        string targetComment,
-        T target)
-        where T: SyntaxNode
+        string? targetComment)
     {
-        var comments = (
-                from trivia in parameter.GetLeadingTrivia()
-                where trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                let str = trivia.ToFullString().Trim()
-                where !string.IsNullOrWhiteSpace(str)
-                select str)
-            .ToArray();
-
         var simpleComments = new List<string>();
-        if (context.DocComments.TryGetValue(parameter.Identifier.Text, out var docComment))
+        if (context.DocComments.TryGetValue(parameter.Identifier.ValueText, out var docComment))
         {
             simpleComments.Add(docComment);
         }
 
         simpleComments.AddRange(
-            from comment in comments
+            from trivia in parameter.GetLeadingTrivia()
+            where trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+            let comment = trivia.ToString()
             where comment.StartsWith("//") && !comment.StartsWith("///")
-            let str = comment.Substring(2, comment.Length-2).Trim()
-            where !string.IsNullOrWhiteSpace(str)
-            select str);
+            let text = comment.Substring(2).Trim()
+            where text.Length > 0
+            select text);
 
-        if (!simpleComments.Any())
+        if (simpleComments.Count == 0)
         {
-            return target;
+            return;
         }
-        
-        var lines = new List<string> { "/// <summary>" };
-        for (var i = 0; i < simpleComments.Count; i++)
-        {
-            var comment = simpleComments[i];
-            if (i == 0)
-            {
-                comment = $"{title} {comment}";
-            }
 
-            lines.Add($"/// {comment}");
+        code.AppendLine("/// <summary>");
+        var first = true;
+        foreach (var line in simpleComments.SelectMany(comment => comment.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)))
+        {
+            code.AppendLine(first ? $"/// {title} {line}" : $"/// {line}");
+            first = false;
         }
-            
-        lines.Add("/// </summary>");
-        lines.Add("/// <param name=\"it\">The original instance.</param>");
+
+        code.AppendLine("/// </summary>");
+        code.AppendLine("/// <param name=\"it\">The original instance.</param>");
         if (!string.IsNullOrWhiteSpace(targetComment))
         {
-            lines.Add($"/// <param name=\"{parameter.Identifier.Text}\">{targetComment}</param>");
+            code.AppendLine($"/// <param name=\"{parameter.Identifier.ValueText}\">{targetComment}</param>");
         }
 
-        lines.Add("/// <returns>The modified copy of the original instance.</returns>");
-        return target.WithLeadingTrivia(lines.SelectMany(s => new List<SyntaxTrivia> { SyntaxFactory.CarriageReturn, SyntaxFactory.LineFeed, SyntaxFactory.Comment(s)}));
+        code.AppendLine("/// <returns>The modified copy of the original instance.</returns>");
     }
 }

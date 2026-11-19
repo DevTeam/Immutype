@@ -2,5 +2,5 @@ namespace Immutype.Core;
 
 internal interface IMethodsFactory
 {
-    IEnumerable<MemberDeclarationSyntax> Create(GenerationContext<TypeDeclarationSyntax> context, TypeSyntax targetType, IReadOnlyList<ParameterSyntax> parameters);
+    void Build(LineBuilder code, GenerationContext<TypeDeclarationSyntax> context, string targetType, IReadOnlyList<ParameterSyntax> parameters);
 }

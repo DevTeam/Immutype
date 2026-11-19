@@ -18,10 +18,11 @@ internal partial class Composition
 
         .DefaultLifetime(PerBlock)
             .Bind().To<SourceBuilder>()
-            .Bind().To<SyntaxNodeFactory>()
+            .Bind().To<SyntaxInfo>()
             .Bind().To<NameService>()
             .Bind().To<ExtensionsFactory>()
             .Bind().To<MethodsFactory>()
+            .Bind().To<MethodWriter>()
             .Bind().To<DataContainerFactory>()
             .Bind(Unique).To<MethodWithFactory>()
             .Bind(Unique).To<MethodAddRemoveFactory>()

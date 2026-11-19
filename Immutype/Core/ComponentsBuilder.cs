@@ -10,7 +10,7 @@ internal class ComponentsBuilder : IComponentsBuilder
     static ComponentsBuilder()
     {
         Regex componentsRegex = new(@"Immutype.Components.[\w]+.g.cs", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline | RegexOptions.IgnoreCase);
-        Components = GetResources(componentsRegex).Select(i => (i.file, i.code)).ToList();
+        Components = [.. GetResources(componentsRegex).Select(i => (i.file, i.code))];
     }
 
     public IEnumerable<Source> Build(CancellationToken cancellationToken) =>

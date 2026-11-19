@@ -1,4 +1,4 @@
-// Run this from the working directory where the solution or project to build is located.
+﻿// Run this from the working directory where the solution or project to build is located.
 
 using HostApi;
 using JetBrains.TeamCity.ServiceMessages.Write.Special;
@@ -39,11 +39,11 @@ if (unknownRoslynVersions.Length > 0)
     return 1;
 }
 
-Settings[] buildSettings = isPrebuilt
+var buildSettings = isPrebuilt
     ? []
     : isAllRoslyn
         ? allSettings
-        : allSettings.Where(i => requestedRoslynVersions.Contains(i.AnalyzerRoslynVersion, StringComparer.Ordinal)).ToArray();
+        : [.. allSettings.Where(i => requestedRoslynVersions.Contains(i.AnalyzerRoslynVersion, StringComparer.Ordinal))];
 
 if (buildSettings.Length == 0 && !isPrebuilt)
 {
@@ -140,19 +140,19 @@ return 0;
 NuGetVersion GetVersion()
 {
     var requestedVersion = Props.Get("version", "").Trim();
-    if (requestedVersion.Length > 0)
+    if (requestedVersion.Length == 0)
     {
-        if (!NuGetVersion.TryParse(requestedVersion, out var parsedVersion))
-        {
-            Error($"Invalid NuGet package version: \"{requestedVersion}\".");
-            return new NuGetVersion(1, 0, 0, "dev");
-        }
-
-        WriteLine($"The package version has been overridden by {parsedVersion}.", Color.Details);
-        return parsedVersion;
+        return Version.GetNext(new NuGetRestoreSettings(packageId).WithPackageType(NuGetPackageType.Tool), new NuGetVersion(1, 0, 0, "dev"));
     }
 
-    return Version.GetNext(new NuGetRestoreSettings(packageId).WithPackageType(NuGetPackageType.Tool), new NuGetVersion(1, 0, 0, "dev"));
+    if (!NuGetVersion.TryParse(requestedVersion, out var parsedVersion))
+    {
+        Error($"Invalid NuGet package version: \"{requestedVersion}\".");
+        return new NuGetVersion(1, 0, 0, "dev");
+    }
+
+    WriteLine($"The package version has been overridden by {parsedVersion}.", Color.Details);
+    return parsedVersion;
 }
 
 record Settings(string AnalyzerRoslynVersion, string AnalyzerRoslynPackageVersion)

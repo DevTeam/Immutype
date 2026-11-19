@@ -36,7 +36,7 @@ internal class Comments : IComments
             from paramElement in doc.XPathSelectElements("doc/param")
             let comment = paramElement.Value
             where !string.IsNullOrWhiteSpace(comment)
-            let name = paramElement.Attribute("name").Value
+            let name = paramElement.Attribute("name")?.Value
             where !string.IsNullOrWhiteSpace(name)
             select (name, comment);
 

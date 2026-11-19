@@ -2,11 +2,10 @@ namespace Immutype.Core;
 
 internal interface ICommentsGenerator
 {
-    T AddComments<T>(
+    void Write(
+        LineBuilder code,
         GenerationContext<TypeDeclarationSyntax> context,
         string title,
         ParameterSyntax parameter,
-        string targetComment,
-        T target)
-        where T : SyntaxNode;
+        string? targetComment);
 }

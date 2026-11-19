@@ -97,7 +97,7 @@
         var groupName = group.Key.Substring(1).Trim();
     #>- <#=groupName#>
 <#
-        foreach(var info in group.OrderBy(i => i["priority"] + "_" + i["description"]))
+        foreach(var info in group.OrderBy(i => i["priority"] + "_" + i["description"], StringComparer.Ordinal))
         {
             var description = info["description"];
             var reference = "#" + description.Replace(" ", "-")
@@ -113,7 +113,7 @@
 #>
 
 <#
-    foreach(var info in infos.OrderBy(i => i["tag"] + i["priority"]).Where(info => info["visible"] == "true"))
+    foreach(var info in infos.OrderBy(i => i["tag"] + i["priority"], StringComparer.Ordinal).Where(info => info["visible"] == "true"))
     {
 #>### <#=info["description"]#>
 

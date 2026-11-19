@@ -8,14 +8,14 @@ namespace Immutype.Core;
 internal class SourceBuilder(
     ITypeSyntaxFilter typeSyntaxFilter,
     IUnitFactory unitFactory,
-    ISyntaxNodeFactory syntaxNodeFactory)
+    ISyntaxInfo syntaxInfo)
     : ISourceBuilder
 {
     public IEnumerable<Source> Build(GenerationContext<SyntaxNode> context) =>
         from typeDeclarationSyntax in context.Syntax.DescendantNodes().OfType<TypeDeclarationSyntax>()
         where !context.CancellationToken.IsCancellationRequested
         where typeSyntaxFilter.IsAccepted(typeDeclarationSyntax)
-        from source in Build(new GenerationContext<TypeDeclarationSyntax>(context.Options, context.Compilation, context.SemanticModel, typeDeclarationSyntax, context.CancellationToken, ImmutableDictionary<string, string>.Empty))
+        from source in Build(new GenerationContext<TypeDeclarationSyntax>(context.Options, context.Compilation, typeDeclarationSyntax, context.CancellationToken, ImmutableDictionary<string, string>.Empty))
         select source;
 
     public IEnumerable<Source> Build(GenerationContext<TypeDeclarationSyntax> context)
@@ -30,7 +30,7 @@ internal class SourceBuilder(
                 from ctor in context.Syntax.Members.OfType<ConstructorDeclarationSyntax>()
                 where !context.CancellationToken.IsCancellationRequested
                 where ctor.ParameterList.Parameters.Count > 0 && ctor.Modifiers.Any(i => i.IsKind(SyntaxKind.PublicKeyword) || i.IsKind(SyntaxKind.InternalKeyword)) || !ctor.Modifiers.Any()
-                let weight = ctor.ParameterList.Parameters.Count + (syntaxNodeFactory.HasTargetAttribute(ctor) ? 0xffff : 0)
+                let weight = ctor.ParameterList.Parameters.Count + (syntaxInfo.HasTargetAttribute(ctor) ? 0xffff : 0)
                 orderby weight descending
                 select ctor)
             .FirstOrDefault()

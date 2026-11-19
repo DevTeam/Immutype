@@ -1,10 +1,12 @@
 // ReSharper disable ClassNeverInstantiated.Global
 namespace Immutype.Core;
 
+using System.Globalization;
+
 internal class NameService : INameService
 {
     public string ConvertToName(string name) =>
-        new(ConvertToName((IEnumerable<char>)name).ToArray());
+        new([.. ConvertToName((IEnumerable<char>)name)]);
 
     private static IEnumerable<char> ConvertToName(IEnumerable<char> ch)
     {
@@ -13,7 +15,7 @@ internal class NameService : INameService
         {
             if (isFirst)
             {
-                yield return char.ToUpper(c);
+                yield return char.ToUpper(c, CultureInfo.InvariantCulture);
                 isFirst = false;
             }
             else

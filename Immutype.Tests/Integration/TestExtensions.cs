@@ -7,8 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Threading;
-using Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -29,7 +27,7 @@ public static class TestExtensions
                 MetadataReference.CreateFromFile(typeof(IServiceProvider).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(HttpClient).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Uri).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(SourceBuilder).Assembly.Location));
+                MetadataReference.CreateFromFile(typeof(SourceGenerator).Assembly.Location));
 
     public static IReadOnlyList<string> Run(this string setupCode, out string generatedCode, RunOptions? options = null)
     {
@@ -57,25 +55,25 @@ public static class TestExtensions
             .AddSyntaxTrees(CSharpSyntaxTree.ParseText(setupCode, parseOptions))
             .AddSyntaxTrees(additionalCode);
 
-        var generatedSources = new List<Source>();
-        var composition = new Composition();
-        generatedSources.AddRange(composition.Root.ComponentsBuilder.Build(CancellationToken.None));
-        // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-        foreach (var tree in compilation.SyntaxTrees)
-        {
-            var semanticModel = compilation.GetSemanticModel(tree);
-            var root = tree.GetRoot();
-            var context = new GenerationContext<SyntaxNode>(parseOptions, compilation, semanticModel, root, CancellationToken.None, ImmutableDictionary<string, string>.Empty);
-            generatedSources.AddRange(composition.Root.SourceBuilder.Build(context));
-        }
+        var generator = new SourceGenerator();
+        var driver = CSharpGeneratorDriver.Create(
+#if ROSLYN38
+            [generator],
+#else
+            [generator.AsSourceGenerator()],
+#endif
+            parseOptions: parseOptions)
+            .RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out var diagnostics);
 
-        generatedCode = string.Join(Environment.NewLine, generatedSources.Select((src, index) => $"Generated {index + 1}" + Environment.NewLine + Environment.NewLine + src.Code));
-        compilation = compilation
+        generatedCode = string.Join(Environment.NewLine, driver.GetRunResult().Results
+            .SelectMany(result => result.GeneratedSources)
+            .Select(source => source.HintName + Environment.NewLine + Environment.NewLine + source.SourceText));
+        Assert.DoesNotContain(diagnostics, diagnostic => diagnostic.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning);
+        compilation = ((CSharpCompilation)updatedCompilation)
             .AddSyntaxTrees(CSharpSyntaxTree.ParseText(hostCode, parseOptions))
-            .AddSyntaxTrees(generatedSources.Select(i => CSharpSyntaxTree.ParseText(i.Code.ToString(), parseOptions)).ToArray())
             .Check(generatedCode);
 
-        var tempFileName = Path.Combine(Environment.CurrentDirectory, Guid.NewGuid().ToString()[..4]);
+        var tempFileName = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
         var assemblyPath = Path.ChangeExtension(tempFileName, "exe");
         var configPath = Path.ChangeExtension(tempFileName, "runtimeconfig.json");
         var runtime = RuntimeInformation.FrameworkDescription.Split(" ")[1];
@@ -100,17 +98,15 @@ public static class TestExtensions
             var result = compilation.Emit(assemblyPath);
             Assert.True(result.Success);
 
-            var process = new Process
+            using var process = new Process();
+            process.StartInfo = new ProcessStartInfo
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    FileName = "dotnet",
-                    Arguments = assemblyPath
-                }
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                FileName = "dotnet",
+                ArgumentList = { assemblyPath }
             };
 
             try
@@ -129,11 +125,17 @@ public static class TestExtensions
                 process.ErrorDataReceived -= OnOutputDataReceived;
             }
 
+            Assert.True(process.ExitCode == 0, string.Join(Environment.NewLine, output));
             return output;
 
             void OnOutputDataReceived(object sender, DataReceivedEventArgs args)
             {
-                if (args.Data != null)
+                if (args.Data == null)
+                {
+                    return;
+                }
+
+                lock (output)
                 {
                     output.Add(args.Data);
                 }

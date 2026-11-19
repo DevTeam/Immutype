@@ -1,109 +1,41 @@
-// ReSharper disable ClassNeverInstantiated.Global
-// ReSharper disable InvertIf
 namespace Immutype.Core;
 
-internal class DataContainerFactory : IDataContainerFactory
+internal sealed class DataContainerFactory : IDataContainerFactory
 {
-    private static readonly Dictionary<string, string> GenericTypeMap = new()
+    public CollectionType? GetCollection(TypeSyntax type)
     {
-        { "List", "List" },
-        { "IEnumerable", "List" },
-        { "IReadOnlyCollection", "List" },
-        { "IReadOnlyList", "List" },
-        { "ICollection", "List" },
-        { "IList", "List" },
-        { "HashSet", "HashSet" },
-        { "ISet", "HashSet" },
-        { "Queue", "Queue" },
-        { "Stack", "Stack" }
-    };
-
-    private static readonly Dictionary<string, string> ReadonlyTypeMap = new()
-    {
-        { "IReadOnlyCollection", "List" },
-        { "IReadOnlyList", "List" },
-        { "IReadOnlySet", "List" }
-    };
-
-    private static readonly Dictionary<string, string> ImmutableTypeMap = new()
-    {
-        { "ImmutableList", "ImmutableList" },
-        { "IImmutableList", "ImmutableList" },
-        { "ImmutableArray", "ImmutableArray" },
-        { "ImmutableQueue", "ImmutableQueue" },
-        { "IImmutableQueue", "ImmutableQueue" },
-        { "ImmutableStack", "ImmutableStack" },
-        { "IImmutableStack", "ImmutableStack" }
-    };
-
-    public bool TryCreate(GenericNameSyntax genericNameSyntax, ref ExpressionSyntax? expressionSyntax, ref ParameterSyntax argumentParameter)
-    {
-        if (genericNameSyntax.TypeArgumentList.Arguments.Count != 1)
+        if (type is NullableTypeSyntax nullable)
         {
-            return false;
+            type = nullable.ElementType;
         }
 
-        var elementType = genericNameSyntax.TypeArgumentList.Arguments[0];
-        var newArgumentParameter = argumentParameter.WithType(
-                SyntaxFactory.ArrayType(elementType).AddRankSpecifiers(SyntaxFactory.ArrayRankSpecifier()))
-            .AddModifiers(SyntaxKind.ParamsKeyword.WithSpace());
-
-        if (GenericTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out var genericTypeName))
+        switch (type)
         {
-            expressionSyntax = CreateGenericContainer(expressionSyntax, genericTypeName, elementType);
-            argumentParameter = newArgumentParameter;
-            return true;
+            case ArrayTypeSyntax { RankSpecifiers.Count: 1 } array when array.RankSpecifiers[0].Rank == 1:
+                return new CollectionType(array.ElementType.ToString(), null, false);
+
+            case QualifiedNameSyntax qualified:
+                type = qualified.Right;
+                break;
         }
 
-        if (ReadonlyTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out genericTypeName))
+        if (type is not GenericNameSyntax { TypeArgumentList.Arguments.Count: 1 } generic)
         {
-            expressionSyntax = CreateGenericContainer(expressionSyntax, genericTypeName, elementType);
-            expressionSyntax = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    expressionSyntax,
-                    SyntaxFactory.IdentifierName(nameof(List<object>.AsReadOnly))));
-
-            argumentParameter = newArgumentParameter;
-            return true;
+            return null;
         }
 
-        if (ImmutableTypeMap.TryGetValue(genericNameSyntax.Identifier.Text, out var immutableTypeName))
+        var element = generic.TypeArgumentList.Arguments[0].ToString();
+        return generic.Identifier.ValueText switch
         {
-            var immutableDataTypeName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier($"System.Collections.Immutable.{immutableTypeName}"));
-            if (expressionSyntax != null)
-            {
-                expressionSyntax = SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            immutableDataTypeName,
-                            SyntaxFactory.GenericName("CreateRange").AddTypeArgumentListArguments(elementType)))
-                    .AddArgumentListArguments(SyntaxFactory.Argument(expressionSyntax));
-            }
-            else
-            {
-                expressionSyntax = SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.GenericName(immutableTypeName).AddTypeArgumentListArguments(elementType),
-                    SyntaxFactory.IdentifierName("Empty"));
-            }
-
-            argumentParameter = newArgumentParameter;
-            return true;
-        }
-
-        return false;
-    }
-
-    private static ExpressionSyntax CreateGenericContainer(ExpressionSyntax? expressionSyntax, string genericTypeName, TypeSyntax elementType)
-    {
-        var genericDataType = SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier($"System.Collections.Generic.{genericTypeName}"))
-            .AddTypeArgumentListArguments(elementType);
-
-        var result = SyntaxRepo.ObjectCreationExpression(genericDataType);
-        return expressionSyntax != null
-            ? result.AddArgumentListArguments(SyntaxFactory.Argument(expressionSyntax))
-            : result.AddArgumentListArguments();
+            "List" or "IEnumerable" or "IReadOnlyCollection" or "IReadOnlyList" or "ICollection" or "IList" =>
+                new CollectionType(element, "List", false),
+            "HashSet" or "ISet" => new CollectionType(element, "HashSet", false),
+            "Queue" or "Stack" => new CollectionType(element, generic.Identifier.ValueText, false),
+            "ImmutableList" or "IImmutableList" => new CollectionType(element, "ImmutableList", true),
+            "ImmutableArray" => new CollectionType(element, "ImmutableArray", true),
+            "ImmutableQueue" or "IImmutableQueue" => new CollectionType(element, "ImmutableQueue", true),
+            "ImmutableStack" or "IImmutableStack" => new CollectionType(element, "ImmutableStack", true),
+            _ => null
+        };
     }
 }
